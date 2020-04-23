@@ -3,11 +3,11 @@ using Space_Server.controller;
 
 namespace Space_Server.model {
     public class Room {
-        public List<NetworkPlayer> Players { get; }
+        public List<NetworkClient> Players { get; }
         
         public List<GamePlayer> GamePlayers { get; } = new List<GamePlayer>();
 
-        public Room(List<NetworkPlayer> players) {
+        public Room(List<NetworkClient> players) {
             Players = players;
         }
 

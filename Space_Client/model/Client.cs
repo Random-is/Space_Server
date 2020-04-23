@@ -1,9 +1,9 @@
-﻿﻿using System;
+﻿using System;
 using System.IO;
 using System.Net.Sockets;
 using System.Threading;
 
-namespace Space_Client {
+namespace Space_Client.model {
     public class Client {
         private readonly string _ip;
         private readonly int _port;
@@ -14,22 +14,37 @@ namespace Space_Client {
         }
 
         public void Start() {
-            Console.WriteLine("Подключаюсь к серверу");
-            var client = new TcpClient(_ip, _port);
-            Console.WriteLine("Подключился");
-            var binaryWriter = new BinaryWriter(client.GetStream());
-            var binaryReader = new BinaryReader(client.GetStream());
-            binaryWriter.Write("Hello Space Comrade");
-            binaryWriter.Write("Login:Password");
-            var nickname = binaryReader.ReadString();
-            Console.WriteLine($"My new Nickname: {nickname}");
-            binaryWriter.Write("QUEUE ENTER:");
-            var listenMessageThread = new Thread(() => {
-                while (true) binaryReader.ReadString();
+            var t = new Thread(() => {
+                Console.WriteLine("Подключаюсь к серверу");
+                TcpClient client;
+                while (true) {
+                    try {
+                        client = new TcpClient(_ip, _port);
+                        break;
+                    } catch (Exception) {
+                        Console.WriteLine("Повторное подключениееееееееееееееее");
+                    }
+                }
+                Console.WriteLine("Подключился");
+                var binaryWriter = new BinaryWriter(client.GetStream());
+                var binaryReader = new BinaryReader(client.GetStream());
+                binaryWriter.Write("Hello Space Comrade");
+                binaryWriter.Flush();
+                binaryWriter.Write("Login:Password");
+                binaryWriter.Flush();
+                var nickname = binaryReader.ReadString();
+                Console.WriteLine($"My new Nickname: {nickname}");
+                binaryWriter.Write("QUEUE_ENTER:");
+                binaryWriter.Flush();
+                var listenMessageThread = new Thread(() => {
+                    while (true) binaryReader.ReadString();
+                });
+                listenMessageThread.Start();
             });
-            listenMessageThread.Start();
+            t.Start();
+            
             // Console.ReadLine();
-            // binaryWriter.Write("QUEUE ACCEPT");
+            // binaryWriter.Write("QUEUE_ACCEPT");
             // Console.ReadLine();
         }
     }

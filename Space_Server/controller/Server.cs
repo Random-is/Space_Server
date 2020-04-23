@@ -12,7 +12,7 @@ namespace Space_Server.controller {
         private static readonly Random random = new Random();
         private readonly int _port;
 
-        public List<NetworkPlayer> Players { get; set; }
+        public List<NetworkClient> Clients { get; set; }
 
         public List<Room> Rooms { get; set; }
 
@@ -23,7 +23,7 @@ namespace Space_Server.controller {
         }
 
         public void Start() {
-            Players = new List<NetworkPlayer>();
+            Clients = new List<NetworkClient>();
             Rooms = new List<Room>();
             SearchQueue = new Queue(this, 4);
             SearchQueue.Start();
@@ -46,24 +46,22 @@ namespace Space_Server.controller {
 
         private void InitPlayer(TcpClient client) {
             var gamePlayer = new GamePlayer();
-            var networkPlayer = new NetworkPlayer(client, gamePlayer);
+            var networkClient = new NetworkClient(client, gamePlayer);
             try {
-                networkPlayer.TcpReader.BaseStream.ReadTimeout = 10000;
-                if (networkPlayer.TcpReader.ReadString() == "Hello Space Comrade") {
-                    var authMessage = networkPlayer.TcpReader.ReadString(); // login:password
+                networkClient.TcpReader.BaseStream.ReadTimeout = 10000;
+                if (networkClient.TcpReader.ReadString() == "Hello Space Comrade") {
+                    var authMessage = networkClient.TcpReader.ReadString(); // login:password
                     var auth = authMessage.Split(':');
                     var login = auth[0];
                     var password = auth[1];
                     //todo Get Nickname from BD by [login, password]
-                    // gamePlayer.Nickname = GenerateNickname();
-                    gamePlayer.Nickname = Players.Count.ToString();
-                    networkPlayer.TcpReader.BaseStream.ReadTimeout = -1;
-                    Players.Add(networkPlayer);
-                    networkPlayer.DisconnectHandler = new InServerDisconnectHandler(this);
-                    networkPlayer.CommandHandler = new InServerClientCommandHandler(this);
-                    networkPlayer.CommandHandlerDictionary.Add("QUEUE ENTER", args => SearchQueue.Join(networkPlayer));
-                    networkPlayer.StartCommandHandler();
-                    networkPlayer.TcpSend(gamePlayer.Nickname);
+                    gamePlayer.Nickname = Clients.Count.ToString();
+                    networkClient.TcpReader.BaseStream.ReadTimeout = -1;
+                    Clients.Add(networkClient);
+                    AddCommandHandler(networkClient);
+                    AddDisconnectHandler(networkClient);
+                    networkClient.StartCommandHandler();
+                    networkClient.TcpSend(gamePlayer.Nickname);
                 }
             } catch (Exception e) {
                 Log.Print(e.ToString());
@@ -74,49 +72,34 @@ namespace Space_Server.controller {
             Log.Print($"Client initialization Complete: {client.Client.RemoteEndPoint} -> {gamePlayer.Nickname}");
         }
 
+        private void AddCommandHandler(NetworkClient client) {
+            client.CommandHandler.Add(CommandType.SERVER, new Dictionary<string, Action<string[]>> {
+                ["QUEUE_ENTER"] = args => SearchQueue.Join(client),
+                ["QUEUE_LEAVE"] = args => SearchQueue.Leave(client),
+            });
+        }
+
+        private void RemoveCommandHandler(NetworkClient client) {
+            client.CommandHandler.Remove(CommandType.SERVER);
+        }
+
+        private void AddDisconnectHandler(NetworkClient client) {
+            client.DisconnectHandler.Add(CommandType.SERVER, () => {
+                if (Clients.Remove(client)) {
+                    Log.Print($"{client.Player.Nickname} (Server) deleted from Clients");
+                }
+            });
+        }
+
+        private void RemoveDisconnectHandler(NetworkClient client) {
+            client.DisconnectHandler.Remove(CommandType.SERVER);
+        }
+
         private static string GenerateNickname() {
             var randomWord = new char[14];
             for (var i = 0; i < randomWord.Length; i++)
                 randomWord[i] = (char) ((i & 1) == 0 ? random.Next(65, 91) : random.Next(48, 58));
             return new string(randomWord);
-        }
-
-        private class InServerClientCommandHandler : IClientCommandHandler {
-            private readonly Server _server;
-
-            public InServerClientCommandHandler(Server server) {
-                _server = server;
-            }
-
-            public void Handle(NetworkPlayer player, string[] command) {
-                if (command[0] == "QUEUE") {
-                    if (command[1] == "ENTER")
-                        _server.SearchQueue.Join(player);
-                    else if (command[1] == "LEAVE")
-                        _server.SearchQueue.Leave(player);
-                    else if (command[1] == "ACCEPT") _server.SearchQueue.AcceptGame(player);
-                }
-            }
-        }
-        
-        private class InServerDisconnectHandler : IClientDisconnectHandler {
-            private readonly Server _server;
-
-            public InServerDisconnectHandler(Server server) {
-                _server = server;
-            }
-            public void Disconnect(NetworkPlayer player) {
-                Log.Print($"Disconnect: {player.Player.Nickname} -> Start");
-                _server.SearchQueue.Disconnect(player);
-                _server.Disconnect(player);
-                Log.Print($"Disconnect: {player.Player.Nickname} -> Complete");
-            }
-        }
-
-        private void Disconnect(NetworkPlayer player) {
-            if (Players.Remove(player)) {
-                Log.Print($"{player.Player.Nickname} disconnect from Server");
-            }
         }
     }
 }
