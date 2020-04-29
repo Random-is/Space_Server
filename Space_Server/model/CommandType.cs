@@ -2,6 +2,7 @@
     public enum CommandType {
         SERVER,
         QUEUE,
-        TEMP
+        TEMP,
+        GAME
     }
 }

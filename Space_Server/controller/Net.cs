@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using Space_Server.model;
 
@@ -11,7 +10,10 @@ namespace Space_Server.controller {
             players.ForEach(player => player.TcpSend(message));
         }
 
-        public static ConcurrentDictionary<NetworkClient, bool> WaitAllAsync(List<NetworkClient> clients, string message) {
+        public static ConcurrentDictionary<NetworkClient, bool> WaitAllAsync(
+            IEnumerable<NetworkClient> clients,
+            string message
+        ) {
             return AddTempCommandAll(clients, message);
         }
 
@@ -27,26 +29,21 @@ namespace Space_Server.controller {
             beforeWait?.Invoke();
             var result = locker.Wait(timeout);
             RemoveTempCommandAll(clients);
-            locker.Dispose();
+            // locker.Dispose();
             return result;
         }
 
         private static ConcurrentDictionary<NetworkClient, bool> AddTempCommandAll(
-            IReadOnlyCollection<NetworkClient> clients,
+            IEnumerable<NetworkClient> clients,
             string message,
             Action<NetworkClient> action = null
         ) {
             var handled = new ConcurrentDictionary<NetworkClient, bool>();
             foreach (var client in clients) {
-                if (!handled.TryAdd(client, false)) {
-                    Console.WriteLine("EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE " + client.Player.Nickname);
-                }
-            }
-            
-            foreach (var client in clients) {
-                client.CommandHandler.Add(CommandType.TEMP, new Dictionary<string, Action<string[]>> {
+                handled.TryAdd(client, false);
+                client.CommandHandler.TryAdd(CommandType.TEMP, new ConcurrentDictionary<string, Action<string[]>> {
                     [message] = args => {
-                        client.CommandHandler.Remove(CommandType.TEMP);
+                        client.CommandHandler.TryRemove(CommandType.TEMP, out _);
                         handled[client] = true;
                         action?.Invoke(client);
                     }
@@ -57,7 +54,7 @@ namespace Space_Server.controller {
 
         private static void RemoveTempCommandAll(IEnumerable<NetworkClient> clients) {
             foreach (var client in clients)
-                client.CommandHandler.Remove(CommandType.TEMP);
+                client.RemoveAllCommands(CommandType.TEMP);
         }
     }
 }

@@ -34,10 +34,18 @@ namespace Space_Client.model {
                 binaryWriter.Flush();
                 var nickname = binaryReader.ReadString();
                 Console.WriteLine($"My new Nickname: {nickname}");
-                binaryWriter.Write("QUEUE_ENTER:");
+                binaryWriter.Write("QUEUE_ENTER");
                 binaryWriter.Flush();
                 var listenMessageThread = new Thread(() => {
-                    while (true) binaryReader.ReadString();
+                    while (true) {
+                        var message = binaryReader.ReadString();
+                        Console.WriteLine(message);
+                        if (message == "QUEUE_FOUND") {
+                            binaryWriter.Write("QUEUE_ACCEPT");
+                        } else if (message == "ROOM_CREATED") {
+                            binaryWriter.Write("ROOM_LOADED");
+                        }
+                    }
                 });
                 listenMessageThread.Start();
             });

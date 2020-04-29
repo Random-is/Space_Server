@@ -1,4 +1,5 @@
-﻿﻿using System;
+﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
@@ -9,46 +10,45 @@ namespace Space_Server.controller {
     public class Server {
         public static TcpListener TcpListener;
         public static UdpClient UdpListener;
-        private static readonly Random random = new Random();
         private readonly int _port;
-
-        public List<NetworkClient> Clients { get; set; }
-
-        public List<Room> Rooms { get; set; }
-
-        public Queue SearchQueue { get; set; }
+        public ConcurrentList<NetworkClient> Clients { get; set; }
+        public ConcurrentList<Room> Rooms { get; private set; }
+        private Queue SearchQueue { get; set; }
+        private static readonly Random random = new Random();
 
         public Server(int port) {
             _port = port;
         }
 
-        public void Start() {
-            Clients = new List<NetworkClient>();
-            Rooms = new List<Room>();
+        public void InitAndStart() {
+            Clients = new ConcurrentList<NetworkClient>();
+            Rooms = new ConcurrentList<Room>();
             SearchQueue = new Queue(this, 4);
-            SearchQueue.Start();
             UdpListener = new UdpClient(_port);
             TcpListener = new TcpListener(IPAddress.Any, _port);
             TcpListener.Start();
+            SearchQueue.Start();
             var tcpThread = new Thread(AcceptTcpClientCycle);
             tcpThread.Start();
         }
 
         private void AcceptTcpClientCycle() {
             while (true) {
-                Log.Print("Wait for new Connection");
+                Log.Print("Wait for Connection");
                 var client = TcpListener.AcceptTcpClient();
-                Log.Print($"New Client Connected: {client.Client.RemoteEndPoint} -> initialization: Start");
-                var initPlayerThread = new Thread(() => InitPlayer(client));
+                var clientEndPoint = client.Client.RemoteEndPoint;
+                Log.Print($"New Client Connected: {clientEndPoint} -> initialization: Start");
+                var initPlayerThread = new Thread(() => InitPlayer(client, clientEndPoint));
                 initPlayerThread.Start();
             }
         }
 
-        private void InitPlayer(TcpClient client) {
+        private void InitPlayer(TcpClient client, EndPoint clientEndPoint) {
             var gamePlayer = new GamePlayer();
             var networkClient = new NetworkClient(client, gamePlayer);
+            networkClient.GenerateStreams(client);
             try {
-                networkClient.TcpReader.BaseStream.ReadTimeout = 10000;
+                // networkClient.TcpReader.BaseStream.ReadTimeout = 10000;
                 if (networkClient.TcpReader.ReadString() == "Hello Space Comrade") {
                     var authMessage = networkClient.TcpReader.ReadString(); // login:password
                     var auth = authMessage.Split(':');
@@ -56,43 +56,39 @@ namespace Space_Server.controller {
                     var password = auth[1];
                     //todo Get Nickname from BD by [login, password]
                     gamePlayer.Nickname = Clients.Count.ToString();
-                    networkClient.TcpReader.BaseStream.ReadTimeout = -1;
-                    Clients.Add(networkClient);
+                    // networkClient.TcpReader.BaseStream.ReadTimeout = -1;
+                    Clients.TryAdd(networkClient);
                     AddCommandHandler(networkClient);
                     AddDisconnectHandler(networkClient);
                     networkClient.StartCommandHandler();
                     networkClient.TcpSend(gamePlayer.Nickname);
                 }
             } catch (Exception e) {
-                Log.Print(e.ToString());
+                // Log.Print(e.ToString());
                 client.Close();
-                Log.Print($"Client Disconnected: {client.Client.RemoteEndPoint} -> initialization: Cancel");
+                Log.Print($"Client Disconnected: {clientEndPoint} -> initialization: Cancel");
             }
-
-            Log.Print($"Client initialization Complete: {client.Client.RemoteEndPoint} -> {gamePlayer.Nickname}");
+            Log.Print($"Client initialization Complete: {clientEndPoint} -> {gamePlayer.Nickname}");
         }
 
         private void AddCommandHandler(NetworkClient client) {
-            client.CommandHandler.Add(CommandType.SERVER, new Dictionary<string, Action<string[]>> {
-                ["QUEUE_ENTER"] = args => SearchQueue.Join(client),
-                ["QUEUE_LEAVE"] = args => SearchQueue.Leave(client),
-            });
+            client.AddCommand(CommandType.SERVER, "QUEUE_ENTER", args => SearchQueue.Join(client));
+            client.AddCommand(CommandType.SERVER, "QUEUE_LEAVE", args => SearchQueue.Leave(client));
         }
 
         private void RemoveCommandHandler(NetworkClient client) {
-            client.CommandHandler.Remove(CommandType.SERVER);
+            client.RemoveAllCommands(CommandType.SERVER);
         }
 
         private void AddDisconnectHandler(NetworkClient client) {
-            client.DisconnectHandler.Add(CommandType.SERVER, () => {
-                if (Clients.Remove(client)) {
-                    Log.Print($"{client.Player.Nickname} (Server) deleted from Clients");
-                }
+            client.AddDisconnectHandler(CommandType.SERVER, () => {
+                if (Clients.TryRemove(client))
+                    Log.Print($"{client.GamePlayer.Nickname} (Server) deleted from Clients");
             });
         }
 
         private void RemoveDisconnectHandler(NetworkClient client) {
-            client.DisconnectHandler.Remove(CommandType.SERVER);
+            client.RemoveDisconnectHandler(CommandType.SERVER);
         }
 
         private static string GenerateNickname() {

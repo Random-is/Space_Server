@@ -1,24 +1,27 @@
 ﻿using System.Collections.Generic;
+using System.Threading;
 using Space_Server.controller;
 
 namespace Space_Server.model {
     public class Room {
-        public List<NetworkClient> Players { get; }
-        
-        public List<GamePlayer> GamePlayers { get; } = new List<GamePlayer>();
+        public ConcurrentList<NetworkClient> Clients { get; }
+        public ConcurrentList<GamePlayer> GamePlayers { get; } = new ConcurrentList<GamePlayer>();
+        public Game Game { get; set; }
 
-        public Room(List<NetworkClient> players) {
-            Players = players;
+        public Room(ConcurrentList<NetworkClient> clients) {
+            Clients = clients;
         }
 
         public void Start() {
-            Net.SendAll(Players, "GAME CREATED");
-            Players.ForEach(player => GamePlayers.Add(player.Player));
-            foreach (var player in Players) {
-                player.Player.Set(100, 0, 0, 1, 
-                    new List<SpaceShip>(), new List<Component>());
-                GamePlayers.Add(player.Player);
-            }
+            var gameThread = new Thread(CreateGame);
+            gameThread.Start();
+        }
+
+        private void CreateGame() {
+            Game = new Game(Clients);
+            Game.Generate();
+            Net.WaitAll(Clients, "ROOM_LOADED", out var handled, () => Net.SendAll(Clients, "ROOM_CREATED"));
+            Game.Start();
         }
     }
 }

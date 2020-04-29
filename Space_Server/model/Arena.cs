@@ -1,5 +1,4 @@
 ﻿namespace Space_Server.model {
-    public class Component {
-        
+    public class Arena {
     }
 }
