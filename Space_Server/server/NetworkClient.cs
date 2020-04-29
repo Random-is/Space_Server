@@ -3,51 +3,49 @@ using System.Collections.Concurrent;
 using System.IO;
 using System.Net.Sockets;
 using System.Threading;
+using Space_Server.model;
+using Space_Server.utility;
 
-namespace Space_Server.model {
+namespace Space_Server.server {
     public class NetworkClient {
-        public TcpClient TcpClient { get; }
-
+        public TcpClient TcpClient { get; set; }
         public BinaryWriter TcpWriter { get; set; }
-
         public BinaryReader TcpReader { get; set; }
-
         public GamePlayer GamePlayer { get; }
+        public ConcurrentDictionary<CommandType, ConcurrentDictionary<string, Action<string[]>>> CommandHandler { get; }
+            = new ConcurrentDictionary<CommandType, ConcurrentDictionary<string, Action<string[]>>>();
+        public ConcurrentDictionary<CommandType, Action> DisconnectHandler { get; } 
+            = new ConcurrentDictionary<CommandType, Action>();
 
-        public NetworkClient(TcpClient tcpClient, GamePlayer gamePlayer) {
-            TcpClient = tcpClient;
+        public NetworkClient(GamePlayer gamePlayer) {
             GamePlayer = gamePlayer;
         }
 
         public void GenerateStreams(TcpClient tcpClient) {
+            TcpClient = tcpClient;
             TcpWriter = new BinaryWriter(tcpClient.GetStream());
             TcpReader = new BinaryReader(tcpClient.GetStream());
         }
 
-        public ConcurrentDictionary<CommandType, ConcurrentDictionary<string, Action<string[]>>> CommandHandler { get; }
-            = new ConcurrentDictionary<CommandType, ConcurrentDictionary<string, Action<string[]>>>();
-
-        public ConcurrentDictionary<CommandType, Action> DisconnectHandler { get; } =
-            new ConcurrentDictionary<CommandType, Action>();
+        public void TcpSend(string message) {
+            try {
+                TcpWriter.Write(message);
+                Log.Print($"TCP send [{message}] -> {GamePlayer.Nickname}");
+            } catch (Exception) {
+                Disconnect();
+            }
+        }
 
         public void StartCommandHandler() {
             var commandHandlerThread = new Thread(CommandHandlerCycle);
             commandHandlerThread.Start();
         }
 
-        public void TcpSend(string message) {
-            try {
-                TcpWriter.Write(message);
-            } catch (Exception) {
-                Disconnect();
-            }
-        }
-
         private void CommandHandlerCycle() {
             try {
                 while (true) {
                     var message = TcpReader.ReadString();
-                    Log.Print($"{GamePlayer.Nickname} -> [{message}]");
+                    Log.Print($"TCP in [{message}] -> {GamePlayer.Nickname}");
                     var command = message.Split(':');
                     var args = command.Length > 1 ? command[1].Split(' ') : default;
                     foreach (var commands in CommandHandler.Values)
@@ -62,26 +60,23 @@ namespace Space_Server.model {
         }
 
         private void Disconnect() {
-            Log.Print($"Disconnect: {GamePlayer.Nickname} -> Start");
+            Log.Print($"Disconnect START -> {GamePlayer.Nickname}");
             foreach (var action in DisconnectHandler.Values) action();
-            Log.Print($"Disconnect: {GamePlayer.Nickname} -> Complete");
+            Log.Print($"Disconnect COMPLETE -> {GamePlayer.Nickname}");
         }
 
 
         public void AddCommand(CommandType commandSource, string command, Action<string[]> action) {
-            if (CommandHandler.TryGetValue(commandSource, out var dict)) {
+            if (CommandHandler.TryGetValue(commandSource, out var dict))
                 dict.TryAdd(command, action);
-            } else {
+            else
                 CommandHandler.TryAdd(commandSource, new ConcurrentDictionary<string, Action<string[]>> {
                     [command] = action
                 });
-            }
         }
 
         public void RemoveCommand(CommandType commandSource, string command) {
-            if (CommandHandler.TryGetValue(commandSource, out var dict)) {
-                dict.TryRemove(command, out _);
-            }
+            if (CommandHandler.TryGetValue(commandSource, out var dict)) dict.TryRemove(command, out _);
         }
 
         public void RemoveAllCommands(CommandType commandSource) {

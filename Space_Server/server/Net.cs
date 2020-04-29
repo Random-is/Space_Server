@@ -2,9 +2,8 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
-using Space_Server.model;
 
-namespace Space_Server.controller {
+namespace Space_Server.server {
     internal static class Net {
         public static void SendAll(List<NetworkClient> players, string message) {
             players.ForEach(player => player.TcpSend(message));
@@ -29,7 +28,6 @@ namespace Space_Server.controller {
             beforeWait?.Invoke();
             var result = locker.Wait(timeout);
             RemoveTempCommandAll(clients);
-            // locker.Dispose();
             return result;
         }
 

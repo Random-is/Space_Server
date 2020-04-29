@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Space_Server.game;
 
 namespace Space_Server.model {
     public class GamePlayer {
@@ -17,7 +18,7 @@ namespace Space_Server.model {
         public List<SpaceShip> SpaceShips { get; set; }
         public List<ShipComponent> BoughtComponents { get; set; }
         public Arena Arena { get; set; }
-        
+
         public ShipComponent[] Shop { get; set; }
 
         public void Set(

@@ -1,7 +1,6 @@
 ﻿using System;
-using System.Net.Sockets;
-using Space_Server.controller;
-using Space_Server.model;
+using Space_Server.server;
+using Space_Server.utility;
 
 namespace Space_Server {
     internal static class Program {

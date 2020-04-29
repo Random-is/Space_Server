@@ -1,20 +1,19 @@
 ﻿using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using Space_Server.model;
+using Space_Server.utility;
 
-namespace Space_Server.controller {
+namespace Space_Server.server {
     public class Server {
         public static TcpListener TcpListener;
         public static UdpClient UdpListener;
+        private readonly Random _random = new Random();
         private readonly int _port;
         public ConcurrentList<NetworkClient> Clients { get; set; }
         public ConcurrentList<Room> Rooms { get; private set; }
         private Queue SearchQueue { get; set; }
-        private static readonly Random random = new Random();
 
         public Server(int port) {
             _port = port;
@@ -45,7 +44,7 @@ namespace Space_Server.controller {
 
         private void InitPlayer(TcpClient client, EndPoint clientEndPoint) {
             var gamePlayer = new GamePlayer();
-            var networkClient = new NetworkClient(client, gamePlayer);
+            var networkClient = new NetworkClient(gamePlayer);
             networkClient.GenerateStreams(client);
             try {
                 // networkClient.TcpReader.BaseStream.ReadTimeout = 10000;
@@ -91,10 +90,10 @@ namespace Space_Server.controller {
             client.RemoveDisconnectHandler(CommandType.SERVER);
         }
 
-        private static string GenerateNickname() {
+        private string GenerateNickname() {
             var randomWord = new char[14];
             for (var i = 0; i < randomWord.Length; i++)
-                randomWord[i] = (char) ((i & 1) == 0 ? random.Next(65, 91) : random.Next(48, 58));
+                randomWord[i] = (char) ((i & 1) == 0 ? _random.Next(65, 91) : _random.Next(48, 58));
             return new string(randomWord);
         }
     }

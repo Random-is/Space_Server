@@ -2,17 +2,18 @@
 using System.Collections.Concurrent;
 using System.Linq;
 using System.Reflection;
+using Space_Server.model;
 
-namespace Space_Server.model {
+namespace Space_Server.game {
     public class TierInfo {
         public static readonly ConcurrentDictionary<int, int[]> TierChancesByLvl = new ConcurrentDictionary<int, int[]> {
-            [1] = new []{100, 0, 0, 0, 0},
-            [2] = new []{50, 50, 0, 0, 0},
-            [3] = new []{34, 33, 33, 0, 0},
-            [4] = new []{25, 25, 25, 25, 0},
-            [5] = new []{35, 20, 20, 20, 5},
+            [1] = new[] {100, 0, 0, 0, 0},
+            [2] = new[] {50, 50, 0, 0, 0},
+            [3] = new[] {34, 33, 33, 0, 0},
+            [4] = new[] {25, 25, 25, 25, 0},
+            [5] = new[] {35, 20, 20, 20, 5}
         };
-        
+
         public static readonly TierInfo[] TierList = {
             new TierInfo(100, GetAllShipComponents(typeof(IFirstTier))),
             new TierInfo(8, GetAllShipComponents(typeof(ISecondTier))),

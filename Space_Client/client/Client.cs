@@ -17,14 +17,13 @@ namespace Space_Client.model {
             var t = new Thread(() => {
                 Console.WriteLine("Подключаюсь к серверу");
                 TcpClient client;
-                while (true) {
+                while (true)
                     try {
                         client = new TcpClient(_ip, _port);
                         break;
                     } catch (Exception) {
                         Console.WriteLine("Повторное подключениееееееееееееееее");
                     }
-                }
                 Console.WriteLine("Подключился");
                 var binaryWriter = new BinaryWriter(client.GetStream());
                 var binaryReader = new BinaryReader(client.GetStream());
@@ -40,17 +39,15 @@ namespace Space_Client.model {
                     while (true) {
                         var message = binaryReader.ReadString();
                         Console.WriteLine(message);
-                        if (message == "QUEUE_FOUND") {
+                        if (message == "QUEUE_FOUND")
                             binaryWriter.Write("QUEUE_ACCEPT");
-                        } else if (message == "ROOM_CREATED") {
-                            binaryWriter.Write("ROOM_LOADED");
-                        }
+                        else if (message == "ROOM_CREATED") binaryWriter.Write("ROOM_LOADED");
                     }
                 });
                 listenMessageThread.Start();
             });
             t.Start();
-            
+
             // Console.ReadLine();
             // binaryWriter.Write("QUEUE_ACCEPT");
             // Console.ReadLine();

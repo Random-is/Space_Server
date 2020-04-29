@@ -1,4 +1,6 @@
-﻿namespace Space_Server.model {
+﻿using Space_Server.model;
+
+namespace Space_Server.game {
     public class ShipComponent {
         public int Tier { get; protected set; }
     }
@@ -14,19 +16,19 @@
             Tier = 1;
         }
     }
-    
+
     public class Gun_2 : ShipComponent, IThirdTier {
         public Gun_2() {
             Tier = 2;
         }
     }
-    
+
     public class Gun_3 : ShipComponent, IFourthTier {
         public Gun_3() {
             Tier = 3;
         }
     }
-    
+
     public class Gun_4 : ShipComponent, IFifthTier {
         public Gun_4() {
             Tier = 4;

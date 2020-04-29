@@ -1,11 +1,10 @@
-﻿using System.Collections.Generic;
-using System.Threading;
-using Space_Server.controller;
+﻿using System.Threading;
+using Space_Server.game;
+using Space_Server.utility;
 
-namespace Space_Server.model {
+namespace Space_Server.server {
     public class Room {
         public ConcurrentList<NetworkClient> Clients { get; }
-        public ConcurrentList<GamePlayer> GamePlayers { get; } = new ConcurrentList<GamePlayer>();
         public Game Game { get; set; }
 
         public Room(ConcurrentList<NetworkClient> clients) {

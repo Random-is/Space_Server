@@ -2,18 +2,21 @@
 using System.Collections.Generic;
 using System.Linq;
 using Space_Server.model;
+using Space_Server.server;
+using Space_Server.utility;
 
-namespace Space_Server.controller {
+namespace Space_Server.game {
     public class Game {
-        public ConcurrentList<NetworkClient> Clients { get; }
-        public ConcurrentList<GamePlayer> GamePlayers { get; set; }
-        public ConcurrentList<ShipComponent>[] Pool { get; set; }
-        private Random _random;
         private readonly object _shopLocker = new object();
+        private Random _random;
 
         public Game(ConcurrentList<NetworkClient> clients) {
             Clients = clients;
         }
+
+        public ConcurrentList<NetworkClient> Clients { get; }
+        public ConcurrentList<GamePlayer> GamePlayers { get; set; }
+        public ConcurrentList<ShipComponent>[] Pool { get; set; }
 
         public void Start() {
             Clients.ForEach(SendShop);
@@ -39,9 +42,7 @@ namespace Space_Server.controller {
                     for (var k = 0; k < currentTierInfo.InstanceCount; k++)
                         currentTierList.Add((ShipComponent) Activator.CreateInstance(type));
                 var tempConcurrentList = new ConcurrentList<ShipComponent>();
-                foreach (var item in currentTierList.OrderBy(a => Guid.NewGuid())) {
-                    tempConcurrentList.TryAdd(item);
-                }
+                foreach (var item in currentTierList.OrderBy(a => Guid.NewGuid())) tempConcurrentList.TryAdd(item);
                 pool[i] = tempConcurrentList;
             }
             PrintPool(pool);
@@ -193,11 +194,10 @@ namespace Space_Server.controller {
         private void AddLvlUpCommand(NetworkClient client) {
             client.AddCommand(CommandType.GAME, "GAME_LVL_UP", args => {
                 AddXp(client.GamePlayer);
-                if (LvlUp(client.GamePlayer)) {
+                if (LvlUp(client.GamePlayer))
                     SendLvlUp(client);
-                } else {
+                else
                     SendXp(client);
-                }
             });
         }
 
