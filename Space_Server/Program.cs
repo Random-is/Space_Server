@@ -1,4 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using Microsoft.VisualBasic;
+using Space_Server.game;
+using Space_Server.model;
 using Space_Server.server;
 using Space_Server.utility;
 
@@ -13,9 +18,10 @@ namespace Space_Server {
                 GC.Collect();
                 Log.Print("GC Collect -> Complete");
             }
+            // const int length = 8;
             // var clients = new ConcurrentList<NetworkClient>();
-            // for (var i = 0; i < 8; i++) {
-            //     clients.Add(new NetworkClient(new TcpClient(), new GamePlayer()));
+            // for (var i = 0; i < length; i++) {
+            //     clients.Add(new NetworkClient(new GamePlayer {Nickname = i.ToString()}));
             // }
             // var game = new Game(clients);
             // game.Generate();

@@ -16,6 +16,8 @@ namespace Space_Server.model {
         public int Xp { get; set; }
         public int Level { get; set; }
         public List<SpaceShip> SpaceShips { get; set; }
+        
+        //todo MAKE Array BoughtComponents
         public List<ShipComponent> BoughtComponents { get; set; }
         public Arena Arena { get; set; }
 
@@ -24,7 +26,7 @@ namespace Space_Server.model {
         public void Set(
             int hp,
             int money,
-            int lvlUpCost,
+            int xp,
             int level,
             List<SpaceShip> spaceShips,
             List<ShipComponent> boughtComponents,
@@ -33,7 +35,7 @@ namespace Space_Server.model {
         ) {
             Hp = hp;
             Money = money;
-            Xp = lvlUpCost;
+            Xp = xp;
             Level = level;
             SpaceShips = spaceShips;
             BoughtComponents = boughtComponents;
@@ -42,7 +44,7 @@ namespace Space_Server.model {
         }
 
         public void Reset() {
-            Set(100, 4, 6, 1, new List<SpaceShip>(), new List<ShipComponent>(), new Arena(), new ShipComponent[5]);
+            Set(100, 4, 0, 1, new List<SpaceShip>(), new List<ShipComponent>(), new Arena(), new ShipComponent[5]);
         }
     }
 }

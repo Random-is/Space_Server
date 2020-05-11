@@ -10,6 +10,7 @@ namespace Space_Server.utility {
             lock (_locker) {
                 try {
                     item = this[index];
+
                 } catch (Exception) {
                     item = default;
                     return false;
@@ -31,7 +32,7 @@ namespace Space_Server.utility {
 
         public bool TryAddRange(IEnumerable<T> list) {
             lock (_locker) {
-                return list.All(item => !TryAdd(item));
+                return list.All(TryAdd);
             }
         }
 

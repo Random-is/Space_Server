@@ -12,6 +12,7 @@ namespace Space_Server.server {
         private readonly Random _random = new Random();
         private readonly int _port;
         public ConcurrentList<NetworkClient> Clients { get; set; }
+        private int clientSize;
         public ConcurrentList<Room> Rooms { get; private set; }
         private Queue SearchQueue { get; set; }
 
@@ -36,13 +37,14 @@ namespace Space_Server.server {
                 Log.Print("Wait for Connection");
                 var client = TcpListener.AcceptTcpClient();
                 var clientEndPoint = client.Client.RemoteEndPoint;
+                ++clientSize;
                 Log.Print($"New Client Connected: {clientEndPoint} -> initialization: Start");
-                var initPlayerThread = new Thread(() => InitPlayer(client, clientEndPoint));
+                var initPlayerThread = new Thread(() => InitPlayer(client, clientEndPoint, clientSize.ToString()));
                 initPlayerThread.Start();
             }
         }
 
-        private void InitPlayer(TcpClient client, EndPoint clientEndPoint) {
+        private void InitPlayer(TcpClient client, EndPoint clientEndPoint, string nickname) {
             var gamePlayer = new GamePlayer();
             var networkClient = new NetworkClient(gamePlayer);
             networkClient.GenerateStreams(client);
@@ -54,7 +56,7 @@ namespace Space_Server.server {
                     var login = auth[0];
                     var password = auth[1];
                     //todo Get Nickname from BD by [login, password]
-                    gamePlayer.Nickname = Clients.Count.ToString();
+                    gamePlayer.Nickname = nickname;
                     // networkClient.TcpReader.BaseStream.ReadTimeout = -1;
                     Clients.TryAdd(networkClient);
                     AddCommandHandler(networkClient);

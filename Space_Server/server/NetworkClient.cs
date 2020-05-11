@@ -8,6 +8,7 @@ using Space_Server.utility;
 
 namespace Space_Server.server {
     public class NetworkClient {
+        public bool Connected { get; set; }
         public TcpClient TcpClient { get; set; }
         public BinaryWriter TcpWriter { get; set; }
         public BinaryReader TcpReader { get; set; }
@@ -25,14 +26,17 @@ namespace Space_Server.server {
             TcpClient = tcpClient;
             TcpWriter = new BinaryWriter(tcpClient.GetStream());
             TcpReader = new BinaryReader(tcpClient.GetStream());
+            Connected = true;
         }
 
         public void TcpSend(string message) {
-            try {
-                TcpWriter.Write(message);
-                Log.Print($"TCP send [{message}] -> {GamePlayer.Nickname}");
-            } catch (Exception) {
-                Disconnect();
+            if (Connected) {
+                try {
+                    TcpWriter.Write(message);
+                    Log.Print($"TCP send [{message}] -> {GamePlayer.Nickname}");
+                } catch (Exception) {
+                    Disconnect();
+                } 
             }
         }
 
@@ -60,9 +64,12 @@ namespace Space_Server.server {
         }
 
         private void Disconnect() {
-            Log.Print($"Disconnect START -> {GamePlayer.Nickname}");
-            foreach (var action in DisconnectHandler.Values) action();
-            Log.Print($"Disconnect COMPLETE -> {GamePlayer.Nickname}");
+            if (Connected) {
+                Connected = false;
+                Log.Print($"Disconnect START -> {GamePlayer.Nickname}");
+                foreach (var action in DisconnectHandler.Values) action();
+                Log.Print($"Disconnect COMPLETE -> {GamePlayer.Nickname}");
+            }
         }
 
 
