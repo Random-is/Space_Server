@@ -2,7 +2,7 @@
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
-using Space_Server.model;
+using Space_Server.game;
 using Space_Server.utility;
 
 namespace Space_Server.server {
