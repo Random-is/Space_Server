@@ -15,5 +15,9 @@ namespace Space_Server.game {
         public override string ToString() {
             return $"{FirstPlayer.GamePlayer.Nickname} vs {SecondPlayer.GamePlayer.Nickname}";
         }
+
+        public float CalcDistance(SpaceShip firstShip, SpaceShip secondShip) {
+            return PvpArena.CalcDistance(firstShip, secondShip);
+        }
     }
 }

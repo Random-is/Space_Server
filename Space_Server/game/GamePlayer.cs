@@ -9,9 +9,9 @@ namespace Space_Server.game {
         public int Xp { get; set; }
         public int Level { get; set; }
         public List<SpaceShip> SpaceShips { get; set; }
-        public ComponentBase[] BoughtComponents { get; set; }
+        public ShipComponentType[] BoughtComponents { get; set; }
         public PersonArena PersonArena { get; set; }
-        public ComponentBase[] Shop { get; set; }
+        public ShipComponentType[] Shop { get; set; }
         
         public void Set(
             int hp,
@@ -19,9 +19,9 @@ namespace Space_Server.game {
             int xp,
             int level,
             List<SpaceShip> spaceShips,
-            ComponentBase[] boughtComponents,
+            ShipComponentType[] boughtComponents,
             PersonArena arena,
-            ComponentBase[] shop
+            ShipComponentType[] shop
         ) {
             Hp = hp;
             Money = money;
@@ -34,7 +34,7 @@ namespace Space_Server.game {
         }
 
         public void Reset() {
-            Set(100, 4, 0, 1, new List<SpaceShip>(), new ComponentBase[8], new PersonArena(), new ComponentBase[5]);
+            Set(100, 4, 0, 1, new List<SpaceShip>(), new ShipComponentType[8], new PersonArena(), new ShipComponentType[5]);
         }
     }
 }

@@ -3,12 +3,12 @@ using Space_Server.game.ship_components;
 
 namespace Space_Server.game {
     public class SpaceShip {
-        public Hull Hull { get; set; }
-        public Gun Gun { get; set; }
-        public Reactor Reactor { get; set; }
-        public Shell Shell { get; set; }
+        public HullType Hull { get; set; }
+        public ShipComponentType Gun { get; set; }
+        public ShipComponentType Reactor { get; set; }
+        public ShipComponentType Shell { get; set; }
 
-        public SpaceShip(Hull hull) {
+        public SpaceShip(HullType hull) {
             Hull = hull;
         }
     }

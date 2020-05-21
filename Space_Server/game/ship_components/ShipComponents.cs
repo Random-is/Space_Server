@@ -3,8 +3,8 @@ using System.Collections.Immutable;
 using System.Net.Mail;
 
 namespace Space_Server.game.ship_components {
-    
     public enum ShipComponentType {
+        Empty,
         Gun1,
         Gun2,
         Gun3,
@@ -21,79 +21,49 @@ namespace Space_Server.game.ship_components {
                     new Dictionary<ShipClassType, int> {
                         [ShipClassType.Istrebitel] = 1
                     },
-                    (arena, ship) => { }),
+                    new ComponentSpell(
+                        (arena, ship, random) => { },
+                        1)),
                 [ShipComponentType.Gun2] = new Gun(
                     "Gun2",
                     Tier.Two,
                     new Dictionary<ShipClassType, int> {
                         [ShipClassType.Istrebitel] = 2
                     },
-                    (arena, ship) => { }),
+                    new ComponentSpell(
+                        (arena, ship, random) => { },
+                        1)),
                 [ShipComponentType.Gun3] = new Gun(
                     "Gun3",
                     Tier.Three,
                     new Dictionary<ShipClassType, int> {
                         [ShipClassType.Istrebitel] = 3
                     },
-                    (arena, ship) => { }),
+                    new ComponentSpell(
+                        (arena, ship, random) => { },
+                        1)),
                 [ShipComponentType.Gun4] = new Gun(
                     "Gun4",
                     Tier.Four,
                     new Dictionary<ShipClassType, int> {
                         [ShipClassType.Istrebitel] = 4
                     },
-                    (arena, ship) => { }),
+                    new ComponentSpell(
+                        (arena, ship, random) => { },
+                        1)),
                 [ShipComponentType.Gun5] = new Gun(
                     "Gun5",
                     Tier.Five,
                     new Dictionary<ShipClassType, int> {
                         [ShipClassType.Istrebitel] = 5
                     },
-                    (arena, ship) => { })
+                    new ComponentSpell(
+                        (arena, ship, random) => { },
+                        1))
             }.ToImmutableDictionary();
 
         public static ComponentBase Get(ShipComponentType type) {
             return Components[type];
         }
-    }
-
-    public static class ShipComponents {
-        public static readonly List<ComponentBase> All = new List<ComponentBase> {
-            new Gun(
-                "Gun1",
-                Tier.One,
-                new Dictionary<ShipClassType, int> {
-                    [ShipClassType.Istrebitel] = 1
-                },
-                (arena, ship) => { }),
-            new Gun(
-                "Gun2",
-                Tier.Two,
-                new Dictionary<ShipClassType, int> {
-                    [ShipClassType.Istrebitel] = 2
-                },
-                (arena, ship) => { }),
-            new Gun(
-                "Gun3",
-                Tier.Three,
-                new Dictionary<ShipClassType, int> {
-                    [ShipClassType.Istrebitel] = 3
-                },
-                (arena, ship) => { }),
-            new Gun(
-                "Gun4",
-                Tier.Four,
-                new Dictionary<ShipClassType, int> {
-                    [ShipClassType.Istrebitel] = 4
-                },
-                (arena, ship) => { }),
-            new Gun(
-                "Gun5",
-                Tier.Five,
-                new Dictionary<ShipClassType, int> {
-                    [ShipClassType.Istrebitel] = 5
-                },
-                (arena, ship) => { })
-        };
     }
 }
