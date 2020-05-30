@@ -14,7 +14,7 @@ namespace Space_Client.model {
         }
 
         public void Start() {
-            // var t = new Thread(() => {
+            var t = new Thread(() => {
                 Console.WriteLine("Подключаюсь к серверу");
                 TcpClient client;
                 while (true)
@@ -45,12 +45,12 @@ namespace Space_Client.model {
                     }
                 });
                 listenMessageThread.Start();
-                while (true) {
-                    Console.ReadLine();
-                    binaryWriter.Write("GAME_SHOP_ROLL");
-                }
-            // });
-            // t.Start();
+                // while (true) {
+                //     Console.ReadLine();
+                //     binaryWriter.Write("GAME_SHOP_ROLL");
+                // }
+            });
+            t.Start();
 
             // Console.ReadLine();
             // binaryWriter.Write("QUEUE_ACCEPT");

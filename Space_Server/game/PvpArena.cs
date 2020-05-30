@@ -18,7 +18,6 @@ namespace Space_Server.game {
             var arena = personArena.Arena;
             for (var i = 0; i < arena.GetLength(0); i++) {
                 for (var j = 0; j < arena.GetLength(1); j++) {
-                    Console.WriteLine($"{i}, {j} <= {arena.GetLength(0) - 1 - i} {arena.GetLength(1) - 1 - j}");
                     Arena[i, j] = arena[arena.GetLength(0) - 1 - i, arena.GetLength(1) - 1 - j];
                 }
             }

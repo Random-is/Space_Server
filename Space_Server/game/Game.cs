@@ -23,7 +23,7 @@ namespace Space_Server.game {
         public ConcurrentList<PvpFight> PvpFights { get; set; }
         public NetworkClient LastDead { get; set; }
         public List<GamePlayer> GamePlayers { get; }
-        public ConcurrentList<ShipComponentType>[] Pool { get; set; }
+        public ConcurrentList<ShipComponent>[] Pool { get; set; }
 
         public Game(ConcurrentList<NetworkClient> clients) {
             AllClients = clients;
@@ -41,7 +41,7 @@ namespace Space_Server.game {
         public void Generate() {
             _random = new Random();
             LastOpponents = new ConcurrentDictionary<NetworkClient, NetworkClient>();
-            Pool = GeneratePool((ShipComponentType[]) Enum.GetValues(typeof(ShipComponentType)));
+            Pool = GeneratePool(ShipComponentInfo.Components.Values);
             foreach (var client in AliveClients) {
                 client.GamePlayer.Reset();
                 GamePlayers.Add(client.GamePlayer);
@@ -135,88 +135,88 @@ namespace Space_Server.game {
         }
 
         private FightWinner CalcWinner(PvpFight pvpFight, int fightSeconds, Random random) {
-            const int tickRate = 30;
-            var fightShips = pvpFight.FirstPlayer.GamePlayer.SpaceShips
-                .Concat(pvpFight.SecondPlayer.GamePlayer.SpaceShips)
-                .Select(spaceShip => new FightShip(spaceShip))
-                .ToList();
-            for (var i = 0; i < fightSeconds * tickRate; i++) {
-                foreach (var currentShip in fightShips) {
-                    if (currentShip.BusyTicksAA == -1) {
-                        if (currentShip.AfterBusySpells.Count == 0) {
-                            if (currentShip.Target == null || !currentShip.Target.Alive) { //Поиск Цели
-                                currentShip.BusyTicksSpell = 0;
-                                currentShip.AfterBusySpells = null;
-                                var minDistance = float.MaxValue;
-                                FightShip minDistanceFightShip = null;
-                                foreach (var opponentFightShip in fightShips.Where(ship => ship != currentShip)) {
-                                    var distance = pvpFight.CalcDistance(currentShip.Ship, opponentFightShip.Ship);
-                                    if (distance < minDistance) {
-                                        minDistance = distance;
-                                        minDistanceFightShip = opponentFightShip;
-                                    }
-                                }
-                                currentShip.Target = minDistanceFightShip;
-                                continue;
-                            }
-                            if (pvpFight.CalcDistance(currentShip.Ship, currentShip.Target.Ship) >
-                                currentShip.AttackRange) { //Передвижение к цели
-                                //лететь к цели
-                                continue;
-                            }
-                        } else if (currentShip.BusyTicksSpell == 0) { //Использование способности
-                            var spellList = currentShip.AfterBusySpells;
-                            if (spellList.Count > 0) {
-                                spellList[currentShip.ActiveSpellIndex].Spell(pvpFight.PvpArena, currentShip, random);
-                                spellList.RemoveAt(currentShip.ActiveSpellIndex);
-                                if (spellList.Count > 0) {
-                                    var randomSpellIndex = random.Next(spellList.Count);
-                                    var randomSpell = spellList[randomSpellIndex];
-                                    currentShip.BusyTicksSpell = (int) (randomSpell.SpellCastSeconds * tickRate);
-                                    currentShip.ActiveSpellIndex = randomSpellIndex;
-                                }
-                                continue;
-                            }
-                            if (currentShip.Energy >= currentShip.MaxEnergy) {
-                                currentShip.Energy = 0;
-                                if (currentShip.Ship.Gun != ShipComponentType.Empty) {
-                                    var spell = ((Gun) ShipComponentInfo.Get(currentShip.Ship.Gun)).Spell;
-                                    if (spell != null) {
-                                        spellList.Add(spell);
-                                    }
-                                }
-                                if (currentShip.Ship.Shell != ShipComponentType.Empty) {
-                                    var spell = ((Shell) ShipComponentInfo.Get(currentShip.Ship.Shell)).Spell;
-                                    if (spell != null) {
-                                        spellList.Add(spell);
-                                    }
-                                }
-                                if (currentShip.Ship.Reactor != ShipComponentType.Empty) {
-                                    var spell = ((Reactor) ShipComponentInfo.Get(currentShip.Ship.Reactor)).Spell;
-                                    if (spell != null) {
-                                        spellList.Add(spell);
-                                    }
-                                }
-                                var randomSpellIndex = random.Next(spellList.Count);
-                                var randomSpell = spellList[randomSpellIndex];
-                                currentShip.BusyTicksSpell = (int) (randomSpell.SpellCastSeconds * tickRate);
-                                currentShip.ActiveSpellIndex = randomSpellIndex;
-                                continue;
-                            }
-                        } else {
-                            currentShip.BusyTicksSpell--;
-                            continue;
-                        }
-                        currentShip.BusyTicksAA = (int) (currentShip.AttackSpeed * tickRate); //Начало Автоатаки
-                    } else if (currentShip.BusyTicksAA == 0) { //Завершение Автоатаки
-                        currentShip.Energy += currentShip.EnergyRegenPerAttack;
-                        currentShip.Target.Hp -= currentShip.AttackDamage; //заменить на функцию с броней и убийством
-                        currentShip.BusyTicksAA = -1;
-                    } else {
-                        currentShip.BusyTicksAA--;
-                    }
-                }
-            }
+            // const int tickRate = 30;
+            // var fightShips = pvpFight.FirstPlayer.GamePlayer.SpaceShips
+            //     .Concat(pvpFight.SecondPlayer.GamePlayer.SpaceShips)
+            //     .Select(spaceShip => new FightShip(spaceShip))
+            //     .ToList();
+            // for (var i = 0; i < fightSeconds * tickRate; i++) {
+            //     foreach (var currentShip in fightShips) {
+            //         if (currentShip.BusyTicksAA == -1) {
+            //             if (currentShip.AfterBusySpells.Count == 0) {
+            //                 if (currentShip.Target == null || !currentShip.Target.Alive) { //Поиск Цели
+            //                     currentShip.BusyTicksSpell = 0;
+            //                     currentShip.AfterBusySpells = null;
+            //                     var minDistance = float.MaxValue;
+            //                     FightShip minDistanceFightShip = null;
+            //                     foreach (var opponentFightShip in fightShips.Where(ship => ship != currentShip)) {
+            //                         var distance = pvpFight.CalcDistance(currentShip.Ship, opponentFightShip.Ship);
+            //                         if (distance < minDistance) {
+            //                             minDistance = distance;
+            //                             minDistanceFightShip = opponentFightShip;
+            //                         }
+            //                     }
+            //                     currentShip.Target = minDistanceFightShip;
+            //                     continue;
+            //                 }
+            //                 if (pvpFight.CalcDistance(currentShip.Ship, currentShip.Target.Ship) >
+            //                     currentShip.AttackRange) { //Передвижение к цели
+            //                     //лететь к цели
+            //                     continue;
+            //                 }
+            //             } else if (currentShip.BusyTicksSpell == 0) { //Использование способности
+            //                 var spellList = currentShip.AfterBusySpells;
+            //                 if (spellList.Count > 0) {
+            //                     spellList[currentShip.ActiveSpellIndex].Spell(pvpFight.PvpArena, currentShip, random);
+            //                     spellList.RemoveAt(currentShip.ActiveSpellIndex);
+            //                     if (spellList.Count > 0) {
+            //                         var randomSpellIndex = random.Next(spellList.Count);
+            //                         var randomSpell = spellList[randomSpellIndex];
+            //                         currentShip.BusyTicksSpell = (int) (randomSpell.SpellCastSeconds * tickRate);
+            //                         currentShip.ActiveSpellIndex = randomSpellIndex;
+            //                     }
+            //                     continue;
+            //                 }
+            //                 if (currentShip.Energy >= currentShip.MaxEnergy) {
+            //                     currentShip.Energy = 0;
+            //                     if (currentShip.Ship.Gun != ShipComponentName.Empty) {
+            //                         var spell = ((Gun) ShipComponentInfo.Get(currentShip.Ship.Gun)).Spell;
+            //                         if (spell != null) {
+            //                             spellList.Add(spell);
+            //                         }
+            //                     }
+            //                     if (currentShip.Ship.Shell != ShipComponentName.Empty) {
+            //                         var spell = ((Shell) ShipComponentInfo.Get(currentShip.Ship.Shell)).Spell;
+            //                         if (spell != null) {
+            //                             spellList.Add(spell);
+            //                         }
+            //                     }
+            //                     if (currentShip.Ship.Reactor != ShipComponentName.Empty) {
+            //                         var spell = ((Reactor) ShipComponentInfo.Get(currentShip.Ship.Reactor)).Spell;
+            //                         if (spell != null) {
+            //                             spellList.Add(spell);
+            //                         }
+            //                     }
+            //                     var randomSpellIndex = random.Next(spellList.Count);
+            //                     var randomSpell = spellList[randomSpellIndex];
+            //                     currentShip.BusyTicksSpell = (int) (randomSpell.SpellCastSeconds * tickRate);
+            //                     currentShip.ActiveSpellIndex = randomSpellIndex;
+            //                     continue;
+            //                 }
+            //             } else {
+            //                 currentShip.BusyTicksSpell--;
+            //                 continue;
+            //             }
+            //             currentShip.BusyTicksAA = (int) (currentShip.AttackSpeed * tickRate); //Начало Автоатаки
+            //         } else if (currentShip.BusyTicksAA == 0) { //Завершение Автоатаки
+            //             currentShip.Energy += currentShip.EnergyRegenPerAttack;
+            //             currentShip.Target.Hp -= currentShip.AttackDamage; //заменить на функцию с броней и убийством
+            //             currentShip.BusyTicksAA = -1;
+            //         } else {
+            //             currentShip.BusyTicksAA--;
+            //         }
+            //     }
+            // }
             return new FightWinner {
                 Winner = pvpFight.FirstPlayer,
                 Loser = pvpFight.SecondPlayer,
@@ -245,31 +245,32 @@ namespace Space_Server.game {
             client.TcpSend(message);
         }
 
-        private ConcurrentList<ShipComponentType>[] GeneratePool(ShipComponentType[] componentTypes) {
+        private ConcurrentList<ShipComponent>[] GeneratePool(IEnumerable<ShipComponent> components) {
             var pool = new[] {
-                new ConcurrentList<ShipComponentType>(),
-                new ConcurrentList<ShipComponentType>(),
-                new ConcurrentList<ShipComponentType>(),
-                new ConcurrentList<ShipComponentType>(),
-                new ConcurrentList<ShipComponentType>()
+                new ConcurrentList<ShipComponent>(),
+                new ConcurrentList<ShipComponent>(),
+                new ConcurrentList<ShipComponent>(),
+                new ConcurrentList<ShipComponent>(),
+                new ConcurrentList<ShipComponent>()
             };
-            foreach (var componentType in componentTypes.Where(type => type != ShipComponentType.Empty)) {
-                var componentInfo = ShipComponentInfo.Get(componentType);
-                for (var i = 0; i < componentInfo.Tier.Count; i++) {
-                    pool[componentInfo.Tier.Index].TryInsert(_random.Next(pool[componentInfo.Tier.Index].Count + 1),
-                        componentType);
+            foreach (var component in components) {
+                var tierCount = TierInfo.Tiers[component.Tier].Count;
+                for (var i = 0; i < tierCount; i++) {
+                    pool[(int) component.Tier].TryInsert(
+                        _random.Next(pool[(int) component.Tier].Count + 1),
+                        component);
                 }
             }
-            PrintPool(pool);
+            // PrintPool(pool);
             return pool;
         }
 
-        private static void PrintPool(IReadOnlyList<ConcurrentList<ShipComponentType>> pool) {
+        private static void PrintPool(IReadOnlyList<ConcurrentList<ShipComponent>> pool) {
             var mes = new[] {"1 Tier", "2 Tier", "3 Tier", "4 Tier", "5 Tier"};
             for (var i = 0; i < pool.Count; i++) {
                 Log.Debug(mes[i]);
-                foreach (var componentType in pool[i])
-                    Log.Debug($"{componentType} {ShipComponentInfo.Get(componentType).Tier.Index + 1}");
+                foreach (var component in pool[i])
+                    Log.Debug($"{component} {component.Tier}");
             }
         }
 
@@ -325,10 +326,10 @@ namespace Space_Server.game {
         private void RollShop(GamePlayer player) {
             lock (_shopLocker) {
                 var tierList = GetTiers(player);
-                var oldItems = new List<ShipComponentType>();
-                var newItems = new ShipComponentType[player.Shop.Length];
+                var oldItems = new List<ShipComponent>();
+                var newItems = new ShipComponent[player.Shop.Length];
                 for (var i = 0; i < player.Shop.Length; i++) {
-                    if (player.Shop[i] != ShipComponentType.Empty)
+                    if (player.Shop[i] != null)
                         oldItems.Add(player.Shop[i]);
                     if (Pool[tierList[i]].TryPop(out var item))
                         newItems[i] = item;
@@ -343,7 +344,7 @@ namespace Space_Server.game {
         private int[] GetTiers(GamePlayer player) {
             var shopLength = player.Shop.Length;
             var resultChances = new int[shopLength];
-            var tierChances = Tier.ChancesByLvl[player.Level];
+            var tierChances = TierInfo.ChancesByLvl[player.Level];
             for (var i = 0; i < shopLength; i++) {
                 var randomNum = _random.Next(1, 101);
                 var temp = 0;
@@ -362,10 +363,10 @@ namespace Space_Server.game {
             return resultChances;
         }
 
-        private void ReturnToPool(ShipComponentType componentType) {
-            var componentInfo = ShipComponentInfo.Get(componentType);
-            Pool[componentInfo.Tier.Index].TryInsert(
-                _random.Next(Pool[componentInfo.Tier.Index].Count + 1), componentType
+        private void ReturnToPool(ShipComponent component) {
+            Pool[(int) component.Tier].TryInsert(
+                _random.Next(Pool[(int) component.Tier].Count + 1),
+                component
             );
         }
 
@@ -439,11 +440,15 @@ namespace Space_Server.game {
             var message = $"GAME_LVL_UP:{client.GamePlayer.Level}";
             client.TcpSend(message);
         }
+        
+        private void HasShipOnCoordinates
 
         private void ShipReposition(GamePlayer player, int shipIndex, int newX, int newY) {
-            var oldCoordinates = player.PersonArena.Arena.CoordinatesOf(player.SpaceShips[shipIndex]);
-            player.PersonArena.Arena[newX, newY] = player.PersonArena.Arena[oldCoordinates.X, oldCoordinates.Y];
-            player.PersonArena.Arena[oldCoordinates.X, oldCoordinates.Y] = null;
+            var ship = player.SpaceShips[shipIndex];
+            var oldCoordinates = player.PersonArena.Arena.CoordinatesOf(ship);
+            var itemOnNewCoordinates = player.PersonArena.Arena[newX, newY];
+            player.PersonArena.Arena[newX, newY] = ship;
+            player.PersonArena.Arena[oldCoordinates.X, oldCoordinates.Y] = itemOnNewCoordinates;
         }
 
         private void SendShipReposition(NetworkClient client, int shipIndex, int newX, int newY) {
@@ -453,22 +458,22 @@ namespace Space_Server.game {
 
         private bool CanBuyComponent(GamePlayer player, int shopIndex) {
             //todo T2 GUNS checking
-            var hasItem = player.Shop[shopIndex] != ShipComponentType.Empty;
+            var hasItem = player.Shop[shopIndex] != null;
             if (hasItem) {
-                var enoughMoney = player.Money >= ShipComponentInfo.Get(player.Shop[shopIndex]).Tier.Cost;
-                var hasPlace = player.BoughtComponents.Count(
-                    component => component == ShipComponentType.Empty
+                var enoughMoney = player.Money >= TierInfo.Tiers[player.Shop[shopIndex].Tier].Cost;
+                var hasPlace = player.Bag.Count(
+                    component => component == null
                 ) > 0;
                 return enoughMoney && hasPlace;
             }
             return false;
         }
 
-        private ShipComponentType BuyComponent(GamePlayer player, int shopIndex) {
-            var componentType = player.Shop[shopIndex];
-            ChangeMoney(player, ShipComponentInfo.Get(componentType).Tier.Cost);
-            player.Shop[shopIndex] = ShipComponentType.Empty;
-            return componentType;
+        private ShipComponent BuyComponent(GamePlayer player, int shopIndex) {
+            var component = player.Shop[shopIndex];
+            ChangeMoney(player, TierInfo.Tiers[component.Tier].Cost);
+            player.Shop[shopIndex] = null;
+            return component;
         }
 
         private void SendBuyComponent(NetworkClient client, int shopIndex) {
@@ -476,39 +481,24 @@ namespace Space_Server.game {
             client.TcpSend(message);
         }
 
-        private void AddBoughtComponent(GamePlayer player, ShipComponentType componentType) {
+        private void AddBagComponent(GamePlayer player, ShipComponent component) {
             //todo MAKE T2 Guns
-            var index = Array.IndexOf(player.BoughtComponents, ShipComponentType.Empty);
-            player.BoughtComponents[index] = componentType;
+            var index = Array.IndexOf(player.Bag, null);
+            player.Bag[index] = component;
         }
 
-        private void SendAddBoughtComponent(NetworkClient client, ShipComponentType componentType) {
-            var message = $"GAME_ADD_COMPONENT:{componentType}";
+        private void SendAddBagComponent(NetworkClient client, ShipComponent component) {
+            var message = $"GAME_ADD_COMPONENT:{component.Name}";
             client.TcpSend(message);
         }
 
-        private void AddShipComponent(SpaceShip ship, ShipComponentType componentType) {
-            var componentInfo = ShipComponentInfo.Get(componentType);
-            if (componentInfo is Gun) {
-                if (ship.Gun != ShipComponentType.Empty) {
-                    ReturnToPool(ship.Gun);
-                }
-                ship.Gun = componentType;
-            } else if (componentInfo is Shell) {
-                if (ship.Shell != ShipComponentType.Empty) {
-                    ReturnToPool(ship.Shell);
-                }
-                ship.Shell = componentType;
-            } else if (componentInfo is Reactor) {
-                if (ship.Reactor != ShipComponentType.Empty) {
-                    ReturnToPool(ship.Reactor);
-                }
-                ship.Reactor = componentType;
-            }
+        private void AddShipComponent(SpaceShip ship, ShipComponent newComponent) {
+            ReturnToPool(ship.Components[newComponent.Type]);
+            ship.Components[newComponent.Type] = newComponent;
         }
 
-        private void SendAddShipComponent(NetworkClient client, int shipIndex, ShipComponentType componentType) {
-            var message = $"GAME_ADD_SHIP_COMPONENT:{shipIndex} {componentType}";
+        private void SendAddShipComponent(NetworkClient client, int shipIndex, ShipComponent component) {
+            var message = $"GAME_ADD_SHIP_COMPONENT:{shipIndex} {component.Name}";
             client.TcpSend(message);
         }
 
@@ -526,11 +516,11 @@ namespace Space_Server.game {
             client.AddCommand(CommandType.GAME, "GAME_SHOP_BUY", args => {
                 var index = int.Parse(args[0]);
                 if (CanBuyComponent(client.GamePlayer, index)) {
-                    var componentType = BuyComponent(client.GamePlayer, index);
+                    var component = BuyComponent(client.GamePlayer, index);
                     SendBuyComponent(client, index);
                     SendMoney(client);
-                    AddBoughtComponent(client.GamePlayer, componentType);
-                    SendAddBoughtComponent(client, componentType);
+                    AddBagComponent(client.GamePlayer, component);
+                    SendAddBagComponent(client, component);
                 }
             });
         }
