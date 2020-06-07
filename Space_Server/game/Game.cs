@@ -1,13 +1,14 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
-using System.Numerics;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-using Space_Server.game.ship_components;
+using Game_Components;
+using Game_Components.fight;
+using Game_Components.ship;
+using Game_Components.ship.ship_part;
+using Game_Components.utility;
 using Space_Server.server;
 using Space_Server.utility;
 
@@ -23,7 +24,7 @@ namespace Space_Server.game {
         public ConcurrentList<PvpFight> PvpFights { get; set; }
         public NetworkClient LastDead { get; set; }
         public List<GamePlayer> GamePlayers { get; }
-        public ConcurrentList<ShipComponent>[] Pool { get; set; }
+        public PartsPool<ConcurrentList<ShipPart>> Pool { get; set; }
 
         public Game(ConcurrentList<NetworkClient> clients) {
             AllClients = clients;
@@ -41,7 +42,8 @@ namespace Space_Server.game {
         public void Generate() {
             _random = new Random();
             LastOpponents = new ConcurrentDictionary<NetworkClient, NetworkClient>();
-            Pool = GeneratePool(ShipComponentInfo.Components.Values);
+            Pool = new PartsPool<ConcurrentList<ShipPart>>();
+            Pool.Generate(ShipComponentInfo.All.Values, _random);
             foreach (var client in AliveClients) {
                 client.GamePlayer.Reset();
                 GamePlayers.Add(client.GamePlayer);
@@ -52,8 +54,8 @@ namespace Space_Server.game {
         private void PlayRound(int round) {
             PvpFights = GenerateFights(AliveClients);
             foreach (var gamePlayer in GamePlayers) {
-                AddXp(gamePlayer, LvlUpCost);
-                ChangeMoney(gamePlayer, 5);
+                gamePlayer.AddXp(LvlUpCost);
+                gamePlayer.ChangeMoney(5);
                 RollShop(gamePlayer);
             }
             foreach (var client in AliveClients) {
@@ -66,7 +68,7 @@ namespace Space_Server.game {
                 AddCommandAddShipComponent(client);
                 SendPhaseBuying(client);
                 SendXp(client);
-                if (isNewLvl(client.GamePlayer))
+                if (client.GamePlayer.IsNewLvl())
                     SendLvlUp(client);
                 SendMoney(client);
                 SendShop(client);
@@ -95,16 +97,15 @@ namespace Space_Server.game {
                 Thread.Sleep(1000);
             }
 
-            const int fightSeconds = 5;
+            const int fightDurationSeconds = 5;
             foreach (var client in AliveClients) {
                 RemoveCommandShipReposition(client);
                 SendPhaseFighting(client);
             }
             var fightRandomSeed = _random.Next();
-            var fightsRandom = new Random(fightRandomSeed);
-            var fightTasks = new List<Task<FightWinner>>();
+            var fightTasks = new List<Task<FightResult>>();
             foreach (var pvpFight in PvpFights) {
-                var fightTask = new Task<FightWinner>(() => CalcWinner(pvpFight, fightSeconds, fightsRandom));
+                var fightTask = new Task<FightResult>(() => Fight.CalcWinner(pvpFight.FirstPlayer.GamePlayer, pvpFight.SecondPlayer.GamePlayer, pvpFight.PvpArena, fightDurationSeconds, new Random(fightRandomSeed)));
                 fightTasks.Add(fightTask);
                 fightTask.Start();
             }
@@ -112,117 +113,21 @@ namespace Space_Server.game {
             foreach (var client in AliveClients) {
                 SendStartFight(client, fightRandomSeed);
             }
-            for (var currentSecond = 0; currentSecond < fightSeconds; currentSecond++) {
-                var timeLeft = fightSeconds - currentSecond;
+            for (var currentSecond = 0; currentSecond < fightDurationSeconds; currentSecond++) {
+                var timeLeft = fightDurationSeconds - currentSecond;
                 Thread.Sleep(1000);
             }
             foreach (var fightTask in fightTasks) {
                 fightTask.Wait();
-                ChangeHp(fightTask.Result.Loser.GamePlayer, fightTask.Result.Damage);
-                SendHp(fightTask.Result.Loser);
+                var loserClient = AliveClients.Find(client => client.GamePlayer == fightTask.Result.Loser);
+                loserClient.GamePlayer.ChangeHp(fightTask.Result.Damage);
+                SendHp(loserClient);
                 if (fightTask.Result.Tie) {
-                    ChangeHp(fightTask.Result.Winner.GamePlayer, fightTask.Result.Damage);
-                    SendHp(fightTask.Result.Winner);
+                    var winnerClient = AliveClients.Find(client => client.GamePlayer == fightTask.Result.Winner);
+                    winnerClient.GamePlayer.ChangeHp(fightTask.Result.Damage);
+                    SendHp(winnerClient);
                 }
             }
-        }
-
-        private struct FightWinner {
-            public NetworkClient Winner;
-            public NetworkClient Loser;
-            public bool Tie;
-            public int Damage;
-        }
-
-        private FightWinner CalcWinner(PvpFight pvpFight, int fightSeconds, Random random) {
-            // const int tickRate = 30;
-            // var fightShips = pvpFight.FirstPlayer.GamePlayer.SpaceShips
-            //     .Concat(pvpFight.SecondPlayer.GamePlayer.SpaceShips)
-            //     .Select(spaceShip => new FightShip(spaceShip))
-            //     .ToList();
-            // for (var i = 0; i < fightSeconds * tickRate; i++) {
-            //     foreach (var currentShip in fightShips) {
-            //         if (currentShip.BusyTicksAA == -1) {
-            //             if (currentShip.AfterBusySpells.Count == 0) {
-            //                 if (currentShip.Target == null || !currentShip.Target.Alive) { //Поиск Цели
-            //                     currentShip.BusyTicksSpell = 0;
-            //                     currentShip.AfterBusySpells = null;
-            //                     var minDistance = float.MaxValue;
-            //                     FightShip minDistanceFightShip = null;
-            //                     foreach (var opponentFightShip in fightShips.Where(ship => ship != currentShip)) {
-            //                         var distance = pvpFight.CalcDistance(currentShip.Ship, opponentFightShip.Ship);
-            //                         if (distance < minDistance) {
-            //                             minDistance = distance;
-            //                             minDistanceFightShip = opponentFightShip;
-            //                         }
-            //                     }
-            //                     currentShip.Target = minDistanceFightShip;
-            //                     continue;
-            //                 }
-            //                 if (pvpFight.CalcDistance(currentShip.Ship, currentShip.Target.Ship) >
-            //                     currentShip.AttackRange) { //Передвижение к цели
-            //                     //лететь к цели
-            //                     continue;
-            //                 }
-            //             } else if (currentShip.BusyTicksSpell == 0) { //Использование способности
-            //                 var spellList = currentShip.AfterBusySpells;
-            //                 if (spellList.Count > 0) {
-            //                     spellList[currentShip.ActiveSpellIndex].Spell(pvpFight.PvpArena, currentShip, random);
-            //                     spellList.RemoveAt(currentShip.ActiveSpellIndex);
-            //                     if (spellList.Count > 0) {
-            //                         var randomSpellIndex = random.Next(spellList.Count);
-            //                         var randomSpell = spellList[randomSpellIndex];
-            //                         currentShip.BusyTicksSpell = (int) (randomSpell.SpellCastSeconds * tickRate);
-            //                         currentShip.ActiveSpellIndex = randomSpellIndex;
-            //                     }
-            //                     continue;
-            //                 }
-            //                 if (currentShip.Energy >= currentShip.MaxEnergy) {
-            //                     currentShip.Energy = 0;
-            //                     if (currentShip.Ship.Gun != ShipComponentName.Empty) {
-            //                         var spell = ((Gun) ShipComponentInfo.Get(currentShip.Ship.Gun)).Spell;
-            //                         if (spell != null) {
-            //                             spellList.Add(spell);
-            //                         }
-            //                     }
-            //                     if (currentShip.Ship.Shell != ShipComponentName.Empty) {
-            //                         var spell = ((Shell) ShipComponentInfo.Get(currentShip.Ship.Shell)).Spell;
-            //                         if (spell != null) {
-            //                             spellList.Add(spell);
-            //                         }
-            //                     }
-            //                     if (currentShip.Ship.Reactor != ShipComponentName.Empty) {
-            //                         var spell = ((Reactor) ShipComponentInfo.Get(currentShip.Ship.Reactor)).Spell;
-            //                         if (spell != null) {
-            //                             spellList.Add(spell);
-            //                         }
-            //                     }
-            //                     var randomSpellIndex = random.Next(spellList.Count);
-            //                     var randomSpell = spellList[randomSpellIndex];
-            //                     currentShip.BusyTicksSpell = (int) (randomSpell.SpellCastSeconds * tickRate);
-            //                     currentShip.ActiveSpellIndex = randomSpellIndex;
-            //                     continue;
-            //                 }
-            //             } else {
-            //                 currentShip.BusyTicksSpell--;
-            //                 continue;
-            //             }
-            //             currentShip.BusyTicksAA = (int) (currentShip.AttackSpeed * tickRate); //Начало Автоатаки
-            //         } else if (currentShip.BusyTicksAA == 0) { //Завершение Автоатаки
-            //             currentShip.Energy += currentShip.EnergyRegenPerAttack;
-            //             currentShip.Target.Hp -= currentShip.AttackDamage; //заменить на функцию с броней и убийством
-            //             currentShip.BusyTicksAA = -1;
-            //         } else {
-            //             currentShip.BusyTicksAA--;
-            //         }
-            //     }
-            // }
-            return new FightWinner {
-                Winner = pvpFight.FirstPlayer,
-                Loser = pvpFight.SecondPlayer,
-                Tie = false,
-                Damage = _random.Next(-20, -5)
-            };
         }
 
         private void SendStartFight(NetworkClient client, int fightRandomSeed) {
@@ -243,35 +148,6 @@ namespace Space_Server.game {
 
         private void SendToClient(NetworkClient client, string message) {
             client.TcpSend(message);
-        }
-
-        private ConcurrentList<ShipComponent>[] GeneratePool(IEnumerable<ShipComponent> components) {
-            var pool = new[] {
-                new ConcurrentList<ShipComponent>(),
-                new ConcurrentList<ShipComponent>(),
-                new ConcurrentList<ShipComponent>(),
-                new ConcurrentList<ShipComponent>(),
-                new ConcurrentList<ShipComponent>()
-            };
-            foreach (var component in components) {
-                var tierCount = TierInfo.Tiers[component.Tier].Count;
-                for (var i = 0; i < tierCount; i++) {
-                    pool[(int) component.Tier].TryInsert(
-                        _random.Next(pool[(int) component.Tier].Count + 1),
-                        component);
-                }
-            }
-            // PrintPool(pool);
-            return pool;
-        }
-
-        private static void PrintPool(IReadOnlyList<ConcurrentList<ShipComponent>> pool) {
-            var mes = new[] {"1 Tier", "2 Tier", "3 Tier", "4 Tier", "5 Tier"};
-            for (var i = 0; i < pool.Count; i++) {
-                Log.Debug(mes[i]);
-                foreach (var component in pool[i])
-                    Log.Debug($"{component} {component.Tier}");
-            }
         }
 
         private ConcurrentList<PvpFight> GenerateFights(IReadOnlyList<NetworkClient> aliveClients) {
@@ -325,13 +201,14 @@ namespace Space_Server.game {
 
         private void RollShop(GamePlayer player) {
             lock (_shopLocker) {
-                var tierList = GetTiers(player);
-                var oldItems = new List<ShipComponent>();
-                var newItems = new ShipComponent[player.Shop.Length];
+                var rollTiers = Pool.GetRollTiers(player, _random);
+                Log.Debug($"[{string.Join(" ", rollTiers)}]");
+                var oldItems = new List<ShipPart>();
+                var newItems = new ShipPart[player.Shop.Length];
                 for (var i = 0; i < player.Shop.Length; i++) {
                     if (player.Shop[i] != null)
                         oldItems.Add(player.Shop[i]);
-                    if (Pool[tierList[i]].TryPop(out var item))
+                    if (Pool[rollTiers[i]].TryPop(out var item))
                         newItems[i] = item;
                     else
                         Log.Print("SHOP BUG: CAN'T ROLL");
@@ -341,53 +218,24 @@ namespace Space_Server.game {
             }
         }
 
-        private int[] GetTiers(GamePlayer player) {
-            var shopLength = player.Shop.Length;
-            var resultChances = new int[shopLength];
-            var tierChances = TierInfo.ChancesByLvl[player.Level];
-            for (var i = 0; i < shopLength; i++) {
-                var randomNum = _random.Next(1, 101);
-                var temp = 0;
-                for (var j = 0; j < tierChances.Length; j++) {
-                    var tierChance = tierChances[j];
-                    if (randomNum <= tierChance + temp) {
-                        while (Pool[j].Count - resultChances.Count(item => item == j) == 0)
-                            j--;
-                        resultChances[i] = j;
-                        break;
-                    }
-                    temp += tierChance;
-                }
-            }
-            Log.Debug($"[{string.Join(" ", resultChances)}]");
-            return resultChances;
-        }
-
-        private void ReturnToPool(ShipComponent component) {
-            Pool[(int) component.Tier].TryInsert(
-                _random.Next(Pool[(int) component.Tier].Count + 1),
-                component
+        private void ReturnToPool(ShipPart shipPart) {
+            Pool[shipPart.TierName].TryInsert(
+                _random.Next(Pool[shipPart.TierName].Count + 1),
+                shipPart
             );
         }
 
         private void SendShop(NetworkClient client) {
             var message = "GAME_SHOP_UPDATE:";
-            foreach (var componentType in client.GamePlayer.Shop)
+            foreach (var componentType in client.GamePlayer.Shop) {
                 message = message + $"{componentType} ";
+            }
             message = message.Remove(message.Length - 1);
             client.TcpSend(message);
         }
-
-        private IntVector2 AddShipByType(GamePlayer player, HullType hullType) {
-            var newShip = new SpaceShip(hullType);
-            player.SpaceShips.Add(newShip);
-            var coordinates = player.PersonArena.Arena.CoordinatesOf(null);
-            player.PersonArena.Arena[coordinates.X, coordinates.Y] = newShip;
-            return coordinates;
-        }
-
-        private void SendAddShip(NetworkClient client, HullType hullType, int newX, int newY) {
-            var message = $"GAME_ADD_SHIP:{hullType} {newX} {newY}";
+        
+        private void SendAddShip(NetworkClient client, ShipHullName shipHullName, int newX, int newY) {
+            var message = $"GAME_ADD_SHIP:{shipHullName} {newX} {newY}";
             client.TcpSend(message);
         }
 
@@ -400,112 +248,56 @@ namespace Space_Server.game {
             var message = $"GAME_ROUND_UPDATE:{round}";
             client.TcpSend(message);
         }
-
-        private void ChangeMoney(GamePlayer player, int money) {
-            player.Money += money;
-        }
-
+        
         private void SendMoney(NetworkClient client) {
             var message = $"GAME_MONEY_UPDATE:{client.GamePlayer.Money}";
             client.TcpSend(message);
-        }
-
-        private void ChangeHp(GamePlayer player, int hp) {
-            player.Hp += hp;
         }
 
         private void SendHp(NetworkClient client) {
             var message = $"GAME_HP_UPDATE:{client.GamePlayer.Hp}";
             client.TcpSend(message);
         }
-
-        private void AddXp(GamePlayer player, int xp) {
-            if (player.Level < 5) {
-                player.Xp += xp;
-                if (player.Xp >= 12) {
-                    player.Xp = 0;
-                    player.Level += 1;
-                }
-            }
-        }
-
+        
         private void SendXp(NetworkClient client) {
             var message = $"GAME_XP_UPDATE:{client.GamePlayer.Xp}";
             client.TcpSend(message);
         }
-
-        private bool isNewLvl(GamePlayer player) => player.Xp == 0;
-
+        
         private void SendLvlUp(NetworkClient client) {
             var message = $"GAME_LVL_UP:{client.GamePlayer.Level}";
             client.TcpSend(message);
         }
         
-        private void HasShipOnCoordinates
-
-        private void ShipReposition(GamePlayer player, int shipIndex, int newX, int newY) {
-            var ship = player.SpaceShips[shipIndex];
-            var oldCoordinates = player.PersonArena.Arena.CoordinatesOf(ship);
-            var itemOnNewCoordinates = player.PersonArena.Arena[newX, newY];
-            player.PersonArena.Arena[newX, newY] = ship;
-            player.PersonArena.Arena[oldCoordinates.X, oldCoordinates.Y] = itemOnNewCoordinates;
-        }
-
         private void SendShipReposition(NetworkClient client, int shipIndex, int newX, int newY) {
             var message = $"GAME_SHIP_REPOSITION:{shipIndex} {newX} {newY}";
             client.TcpSend(message);
         }
-
-        private bool CanBuyComponent(GamePlayer player, int shopIndex) {
-            //todo T2 GUNS checking
-            var hasItem = player.Shop[shopIndex] != null;
-            if (hasItem) {
-                var enoughMoney = player.Money >= TierInfo.Tiers[player.Shop[shopIndex].Tier].Cost;
-                var hasPlace = player.Bag.Count(
-                    component => component == null
-                ) > 0;
-                return enoughMoney && hasPlace;
-            }
-            return false;
-        }
-
-        private ShipComponent BuyComponent(GamePlayer player, int shopIndex) {
-            var component = player.Shop[shopIndex];
-            ChangeMoney(player, TierInfo.Tiers[component.Tier].Cost);
-            player.Shop[shopIndex] = null;
-            return component;
-        }
-
+        
         private void SendBuyComponent(NetworkClient client, int shopIndex) {
             var message = $"GAME_BUY:{shopIndex}";
             client.TcpSend(message);
         }
-
-        private void AddBagComponent(GamePlayer player, ShipComponent component) {
-            //todo MAKE T2 Guns
-            var index = Array.IndexOf(player.Bag, null);
-            player.Bag[index] = component;
-        }
-
-        private void SendAddBagComponent(NetworkClient client, ShipComponent component) {
-            var message = $"GAME_ADD_COMPONENT:{component.Name}";
+        
+        private void SendAddBagComponent(NetworkClient client, ShipPart shipPart) {
+            var message = $"GAME_ADD_COMPONENT:{shipPart.Name}";
             client.TcpSend(message);
         }
 
-        private void AddShipComponent(SpaceShip ship, ShipComponent newComponent) {
-            ReturnToPool(ship.Components[newComponent.Type]);
-            ship.Components[newComponent.Type] = newComponent;
+        private void AddShipComponent(Ship ship, ShipPart newShipPart) {
+            ReturnToPool(ship.Parts[newShipPart.Type]);
+            ship.Parts[newShipPart.Type] = newShipPart;
         }
 
-        private void SendAddShipComponent(NetworkClient client, int shipIndex, ShipComponent component) {
-            var message = $"GAME_ADD_SHIP_COMPONENT:{shipIndex} {component.Name}";
+        private void SendAddShipComponent(NetworkClient client, int shipIndex, ShipPart shipPart) {
+            var message = $"GAME_ADD_SHIP_COMPONENT:{shipIndex} {shipPart.Name}";
             client.TcpSend(message);
         }
 
         private void AddCommandShopRoll(NetworkClient client) {
             client.AddCommand(CommandType.GAME, "GAME_SHOP_ROLL", args => {
                 if (client.GamePlayer.Money >= RollCost) {
-                    ChangeMoney(client.GamePlayer, -2);
+                    client.GamePlayer.ChangeMoney(-2);
                     RollShop(client.GamePlayer);
                     SendShop(client);
                 }
@@ -515,11 +307,11 @@ namespace Space_Server.game {
         private void AddCommandShopBuy(NetworkClient client) {
             client.AddCommand(CommandType.GAME, "GAME_SHOP_BUY", args => {
                 var index = int.Parse(args[0]);
-                if (CanBuyComponent(client.GamePlayer, index)) {
-                    var component = BuyComponent(client.GamePlayer, index);
+                if (client.GamePlayer.CanBuyComponent(index)) {
+                    var component = client.GamePlayer.BuyComponent(index);
                     SendBuyComponent(client, index);
                     SendMoney(client);
-                    AddBagComponent(client.GamePlayer, component);
+                    client.GamePlayer.AddBagComponent(component);
                     SendAddBagComponent(client, component);
                 }
             });
@@ -537,8 +329,8 @@ namespace Space_Server.game {
             client.AddCommand(CommandType.GAME, "GAME_LVL_UP", args => {
                 var player = client.GamePlayer;
                 if (player.Money >= LvlUpCost) {
-                    AddXp(player, LvlUpCost);
-                    if (isNewLvl(player))
+                    player.AddXp(LvlUpCost);
+                    if (player.IsNewLvl())
                         SendLvlUp(client);
                     else
                         SendXp(client);
@@ -553,9 +345,9 @@ namespace Space_Server.game {
         private void AddCommandBuyShip(NetworkClient client) {
             client.AddCommand(CommandType.GAME, "GAME_BUY_SHIP", args => {
                 var player = client.GamePlayer;
-                if (player.SpaceShips.Count < player.Level) {
-                    var hullType = (HullType) int.Parse(args[0]);
-                    var coordinates = AddShipByType(player, hullType);
+                if (player.Ships.Count < player.Level) {
+                    var hullType = (ShipHullName) int.Parse(args[0]);
+                    var coordinates = player.AddShip(hullType);
                     SendAddShip(client, hullType, coordinates.X, coordinates.Y);
                 }
             });
@@ -572,7 +364,7 @@ namespace Space_Server.game {
                 var newY = int.Parse(args[2]);
                 var player = client.GamePlayer;
                 if (player.PersonArena.Arena[newX, newY] == null) {
-                    ShipReposition(player, shipIndex, newX, newY);
+                    player.ShipReposition(shipIndex, newX, newY);
                     SendShipReposition(client, shipIndex, newX, newY);
                 }
             });

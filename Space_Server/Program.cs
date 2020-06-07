@@ -1,8 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Game_Components;
+using Game_Components.arena;
+using Game_Components.fight;
+using Game_Components.ship;
+using Game_Components.ship.ship_part;
+using Game_Components.utility;
 using Space_Server.game;
-using Space_Server.game.ship_components;
 using Space_Server.server;
 using Space_Server.utility;
 
@@ -10,6 +15,7 @@ namespace Space_Server {
     internal static class Program {
         public static void Main(string[] args) {
             Console.OutputEncoding = System.Text.Encoding.UTF8;
+            
             Log.Print($"Process x64 {Environment.Is64BitProcess}");
             var server = new Server(4444);
             server.InitAndStart();
@@ -19,6 +25,7 @@ namespace Space_Server {
                 GC.Collect();
                 Log.Print("GC Collect -> Complete");
             }
+            
             // const int length = 8;
             // var clients = new ConcurrentList<NetworkClient>();
             // for (var i = 0; i < length; i++) {
@@ -27,69 +34,86 @@ namespace Space_Server {
             // var game = new Game(clients);
             // game.Generate();
             
-            // const int sellSize = 10;
-            // var front = new PersonArena();
-            // var back = new PersonArena();
-            // var pvp = new PvpArena();
-            // front.Arena[0, 0] = new SpaceShip(HullType.Diversant);
-            // front.Arena[0, 1] = new SpaceShip(HullType.Diversant);
-            // front.Arena[0, 2] = new SpaceShip(HullType.Diversant);
-            // front.Arena[0, 3] = new SpaceShip(HullType.Diversant);
-            // front.Arena[0, 4] = new SpaceShip(HullType.Diversant);
-            // front.Arena[0, 5] = new SpaceShip(HullType.Diversant);
-            // back.Arena[1, 1] = new SpaceShip(HullType.Diversant);
-            // back.Arena[0, 4] = new SpaceShip(HullType.Diversant);
-            // pvp.LocateFrontPlayer(front);
-            // pvp.LocateBackPlayer(back);
-            // var fightShips = GenerateFightShips(pvp.Arena);
-            // foreach (var fightShip in fightShips) {
-            //     fightShip.CalcPosition(pvp, sellSize);
-            //     Console.WriteLine($"{fightShip.Ship.Hull} {fightShip.X} {fightShip.Y} {fightShip.Rotate}");
-            // }
-            // PrintMas(pvp.Arena);
+            
+            // const int sellSize = 5;
+            // var mainPlayer = new GamePlayer();
+            // var opponentPlayer = new GamePlayer();
+            //
+            // mainPlayer.Reset();
+            // mainPlayer.AddShip(ShipHullName.Armored);
+            // // mainPlayer.ShipReposition(0, 2, 0);
+            // mainPlayer.AddShip(ShipHullName.Bomber);
+            // mainPlayer.AddShip(ShipHullName.Technodroid);
+            //
+            // opponentPlayer.Reset();
+            // opponentPlayer.AddShip(ShipHullName.Saboteur);
+            // opponentPlayer.AddShip(ShipHullName.Fighter);
+            // // opponentPlayer.ShipReposition(1, 2, 4);
+            //
+            // var pvpArena = new PvpArena();
+            // pvpArena.LocateFrontPlayer(mainPlayer.PersonArena);
+            // pvpArena.LocateBackPlayer(opponentPlayer.PersonArena);
+            //
+            // PrintMas(mainPlayer.PersonArena.Arena);
             // Console.WriteLine();
-            // PrintPvp(pvp.Arena, sellSize, fightShips);
+            // PrintMas(opponentPlayer.PersonArena.Arena);
+            // Console.WriteLine();
+            // PrintMas(pvpArena.Arena);
+            // Console.WriteLine();
+            // Console.ReadLine();
+            //
+            // var fightResult = Fight.CalcWinner(
+            //     mainPlayer, 
+            //     opponentPlayer, 
+            //     pvpArena, 
+            //     10, 
+            //     new Random(), 
+            //     moveAction: (ship, ships, tickRate) => {
+            //         PrintPvp(PvpArena.YSize, PvpArena.XSize, sellSize, ships);
+            //     },
+            //     attackAction: (ship, ships, tickRate) => {
+            //         PrintPvp(PvpArena.YSize, PvpArena.XSize, sellSize, ships);
+            //     });
+            // Console.WriteLine($"Winner {fightResult.Winner.Nickname}");
+            // Console.ReadLine();
         }
 
-        private static void PrintMas(SpaceShip[,] matrix) {
-            var w = matrix.GetLength(0); // width
-            var h = matrix.GetLength(1); // height
-            for (var x = 0; x < w; x++) {
-                for (var y = 0; y < h; y++) {
-                    Console.Write($"{matrix[x, y]?.Hull} {(y < h - 1 ? "|" : "")} ");
+        private static void PrintMas(Ship[,] matrix) {
+            for (var y = 0; y < matrix.GetLength(0); y++) {
+                for (var x = 0; x < matrix.GetLength(1); x++) {
+                    Console.Write($"{matrix[y, x]?.Hull.Name} {(x < matrix.GetLength(1) - 1 ? "|" : "")} ");
                 }
                 Console.WriteLine();
             }
         }
 
-        private static List<FightShip> GenerateFightShips(SpaceShip[,] matrix) {
+        private static List<FightShip> GenerateFightShips(Ship[,] matrix) {
             var result = new List<FightShip>();
-            var w = matrix.GetLength(0); // width
-            var h = matrix.GetLength(1); // height
-            for (var x = 0; x < w; x++) {
-                for (var y = 0; y < h; y++) {
-                    if (matrix[x, y] != null) {
-                        result.Add(new FightShip(matrix[x, y]));
+            for (var y = 0; y < matrix.GetLength(0); y++) {
+                for (var x = 0; x < matrix.GetLength(1); x++) {
+                    if (matrix[y, x] != null) {
+                        result.Add(new FightShip(matrix[y, x], new IntVector2 {Y = y, X = x}, new GamePlayer()));
                     }
                 }
             }
             return result;
         }
 
-        private static void PrintPvp(SpaceShip[,] matrix, int sellSize, List<FightShip> fightShips) {
-            var w = matrix.GetLength(0); // width
-            var h = matrix.GetLength(1); // height
-            for (var x = 0; x < w * sellSize; x++) {
-                for (var y = 0; y < h * sellSize; y++) {
-                    var hasShip = fightShips.Where(ship => Math.Abs(ship.X - x) < float.Epsilon && Math.Abs(ship.Y - y) < float.Epsilon).ToList();
+        private static void PrintPvp(int ySize, int xSize, int sellSize, List<FightShip> fightShips) {
+            // Console.Clear();
+            Console.WriteLine(string.Join(',', fightShips.Select(ship => ship.Hp)));
+            for (var y = 0; y < ySize * sellSize; y++) {
+                for (var x = 0; x < xSize * sellSize; x++) {
+                    var hasShip = fightShips.Where(ship => Math.Abs(MathF.Round(ship.X) - x) < float.Epsilon && Math.Abs(MathF.Round(ship.Y) - y) < float.Epsilon).ToList();
                     if (hasShip.Count > 0) {
-                        Console.Write(Math.Abs(hasShip[0].Rotate) < float.Epsilon ? "↑" : "↓");
+                        Console.Write(Math.Abs(hasShip[0].RotateAngle) < 90 ? "↑" : "↓");
                     } else {
                         Console.Write(".");
                     }
                 }
                 Console.WriteLine();
             }
+            // Console.ReadLine();
         }
     }
 }

@@ -3,7 +3,7 @@ using System.Collections.Concurrent;
 using System.IO;
 using System.Net.Sockets;
 using System.Threading;
-using Space_Server.game;
+using Game_Components;
 using Space_Server.utility;
 
 namespace Space_Server.server {

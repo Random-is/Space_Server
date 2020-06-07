@@ -1,9 +1,10 @@
-﻿using System;
+﻿using Game_Components.ship;
 
-namespace Space_Server.game {
+namespace Game_Components.arena {
     public class PvpArena {
-        public SpaceShip[,] Arena { get; } = new SpaceShip[6, 6];
-        public int SellSize { get; } = 500;
+        public const int YSize = 6;
+        public const int XSize = PersonArena.XSize;
+        public Ship[,] Arena { get; } = new Ship[YSize, XSize];
 
         public void LocateFrontPlayer(PersonArena personArena) {
             var arena = personArena.Arena;
@@ -13,7 +14,7 @@ namespace Space_Server.game {
                 }
             }
         }
-        
+
         public void LocateBackPlayer(PersonArena personArena) {
             var arena = personArena.Arena;
             for (var i = 0; i < arena.GetLength(0); i++) {
@@ -21,10 +22,6 @@ namespace Space_Server.game {
                     Arena[i, j] = arena[arena.GetLength(0) - 1 - i, arena.GetLength(1) - 1 - j];
                 }
             }
-        }
-        
-        public float CalcDistance(SpaceShip firstShip, SpaceShip secondShip) {
-            return 0;
         }
     }
 }

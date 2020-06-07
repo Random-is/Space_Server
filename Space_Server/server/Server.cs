@@ -2,6 +2,7 @@
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
+using Game_Components;
 using Space_Server.game;
 using Space_Server.utility;
 
@@ -37,7 +38,7 @@ namespace Space_Server.server {
                 Log.Print("Wait for Connection");
                 var client = TcpListener.AcceptTcpClient();
                 var clientEndPoint = client.Client.RemoteEndPoint;
-                ++clientSize;
+                clientSize++;
                 Log.Print($"New Client Connected: {clientEndPoint} -> initialization: Start");
                 var initPlayerThread = new Thread(() => InitPlayer(client, clientEndPoint, clientSize.ToString()));
                 initPlayerThread.Start();
@@ -64,8 +65,7 @@ namespace Space_Server.server {
                     networkClient.StartCommandHandler();
                     networkClient.TcpSend(gamePlayer.Nickname);
                 }
-            } catch (Exception e) {
-                // Log.Print(e.ToString());
+            } catch (Exception) {
                 client.Close();
                 Log.Print($"Client Disconnected: {clientEndPoint} -> initialization: Cancel");
             }

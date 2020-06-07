@@ -1,4 +1,7 @@
-﻿using Space_Server.server;
+﻿using Game_Components;
+using Game_Components.arena;
+using Game_Components.ship;
+using Space_Server.server;
 
 namespace Space_Server.game {
     public class PvpFight {
@@ -14,10 +17,6 @@ namespace Space_Server.game {
 
         public override string ToString() {
             return $"{FirstPlayer.GamePlayer.Nickname} vs {SecondPlayer.GamePlayer.Nickname}";
-        }
-
-        public float CalcDistance(SpaceShip firstShip, SpaceShip secondShip) {
-            return PvpArena.CalcDistance(firstShip, secondShip);
         }
     }
 }
