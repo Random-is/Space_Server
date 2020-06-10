@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Numerics;
 
-namespace Game_Components.utility {
+namespace Game_Elements.utility {
     public static class Vector2Ex {
         public static Vector2 MoveTowards(
             Vector2 current,

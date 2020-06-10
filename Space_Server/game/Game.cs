@@ -4,11 +4,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Game_Components;
-using Game_Components.fight;
-using Game_Components.ship;
-using Game_Components.ship.ship_part;
-using Game_Components.utility;
+using Game_Elements;
+using Game_Elements.fight;
+using Game_Elements.ship;
+using Game_Elements.ship.ship_part;
+using Game_Elements.utility;
 using Space_Server.server;
 using Space_Server.utility;
 
@@ -43,7 +43,7 @@ namespace Space_Server.game {
             _random = new Random();
             LastOpponents = new ConcurrentDictionary<NetworkClient, NetworkClient>();
             Pool = new PartsPool<ConcurrentList<ShipPart>>();
-            Pool.Generate(ShipComponentInfo.All.Values, _random);
+            Pool.Generate(ShipPartInfo.All.Values, _random);
             foreach (var client in AliveClients) {
                 client.GamePlayer.Reset();
                 GamePlayers.Add(client.GamePlayer);
@@ -364,7 +364,7 @@ namespace Space_Server.game {
                 var newY = int.Parse(args[2]);
                 var player = client.GamePlayer;
                 if (player.PersonArena.Arena[newX, newY] == null) {
-                    player.ShipReposition(shipIndex, newX, newY);
+                    player.ShipReposition(player.Ships[shipIndex], newX, newY);
                     SendShipReposition(client, shipIndex, newX, newY);
                 }
             });

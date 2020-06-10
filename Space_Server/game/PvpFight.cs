@@ -1,6 +1,6 @@
-﻿using Game_Components;
-using Game_Components.arena;
-using Game_Components.ship;
+﻿using Game_Elements;
+using Game_Elements.arena;
+using Game_Elements.ship;
 using Space_Server.server;
 
 namespace Space_Server.game {

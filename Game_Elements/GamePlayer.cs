@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Game_Components.arena;
-using Game_Components.ship;
-using Game_Components.ship.ship_part;
-using Game_Components.utility;
+using Game_Elements.arena;
+using Game_Elements.ship;
+using Game_Elements.ship.ship_part;
+using Game_Elements.utility;
 
-namespace Game_Components {
+namespace Game_Elements {
     public class GamePlayer {
         public string Nickname { get; set; }
         public int Hp { get; set; }
@@ -69,11 +69,16 @@ namespace Game_Components {
             }
         }
 
+        public ShipPart AddShipPartToShip(Ship ship, int bagIndex) {
+            var shipPart = Bag[bagIndex];
+            Bag[bagIndex] = null;
+            return ship.ChangeComponent(shipPart);
+        }
+
         public bool IsNewLvl() => Xp == 0;
 
-        public void ShipReposition(int shipIndex, int newY, int newX) {
-            var ship = Ships[shipIndex];
-            PersonArena.MoveShip(ship, newY, newX);
+        public Ship ShipReposition(Ship ship, int newY, int newX) {
+            return PersonArena.ShipReposition(ship, newY, newX);
         }
 
         public bool CanBuyComponent(int shopIndex) {
@@ -96,10 +101,30 @@ namespace Game_Components {
             return shipPart;
         }
 
-        public void AddBagComponent(ShipPart shipPart) {
+        public int AddBagComponent(ShipPart shipPart) {
             //todo MAKE T2 Guns
             var bagFreeSpaceIndex = Array.IndexOf(Bag, null);
             Bag[bagFreeSpaceIndex] = shipPart;
+            return bagFreeSpaceIndex;
+        }
+
+        public ShipPart BagItemReposition(int oldItemIndex, int newItemIndex) {
+            var targetItem = Bag[newItemIndex];
+            Bag[newItemIndex] = Bag[oldItemIndex];
+            Bag[oldItemIndex] = targetItem;
+            return targetItem;
+        }
+
+        public Dictionary<ShipClassName, int> GetShipsClasses() {
+            var shipsClasses = new Dictionary<ShipClassName, int>();
+            foreach (var shipClass in Ships.SelectMany(ship => ship.GetClasses())) {
+                if (shipsClasses.ContainsKey(shipClass)) {
+                    shipsClasses[shipClass] += 1;
+                } else {
+                    shipsClasses[shipClass] = 1;
+                }
+            }
+            return shipsClasses;
         }
     }
 }

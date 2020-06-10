@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Runtime.Intrinsics.X86;
-using Game_Components.arena;
-using Game_Components.ship;
-using Game_Components.ship.ship_part;
-using Game_Components.utility;
+using Game_Elements.ship;
+using Game_Elements.utility;
+using Game_Elements.arena;
+using Game_Elements.ship.ship_part;
 
-namespace Game_Components.fight {
+namespace Game_Elements.fight {
     public struct FightResult {
         public GamePlayer Winner;
         public GamePlayer Loser;

@@ -1,4 +1,4 @@
-﻿namespace Game_Components.utility {
+﻿namespace Game_Elements.utility {
     public static class ArrayEx {
         public static IntVector2 CoordinatesOf<T>(this T[,] array, T value) {
             for (var y = 0; y < array.GetLength(0); y++) {

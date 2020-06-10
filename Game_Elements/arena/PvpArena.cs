@@ -1,6 +1,6 @@
-﻿using Game_Components.ship;
+﻿using Game_Elements.ship;
 
-namespace Game_Components.arena {
+namespace Game_Elements.arena {
     public class PvpArena {
         public const int YSize = 6;
         public const int XSize = PersonArena.XSize;

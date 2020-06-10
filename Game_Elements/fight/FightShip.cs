@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Numerics;
-using Game_Components.arena;
-using Game_Components.ship;
-using Game_Components.ship.ship_part;
-using Game_Components.utility;
+using Game_Elements.arena;
+using Game_Elements.ship;
+using Game_Elements.ship.ship_part;
+using Game_Elements.utility;
 
-namespace Game_Components.fight {
+namespace Game_Elements.fight {
     public class FightShip {
         public Ship Ship { get; set; }
         public GamePlayer Player { get; }

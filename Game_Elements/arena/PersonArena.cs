@@ -1,8 +1,8 @@
 ﻿using System;
-using Game_Components.ship;
-using Game_Components.utility;
+using Game_Elements.ship;
+using Game_Elements.utility;
 
-namespace Game_Components.arena {
+namespace Game_Elements.arena {
     public class PersonArena {
         public const int YSize = 3;
         public const int XSize = 6;
@@ -14,14 +14,9 @@ namespace Game_Components.arena {
             return freeSpaceCoordinates;
         }
 
-        public Ship MoveShip(Ship ship, int newY, int newX) {
+        public Ship ShipReposition(Ship ship, int newY, int newX) {
             var oldCoordinates = Arena.CoordinatesOf(ship);
-            if (IsFree(newY, newX)) {
-                Arena[oldCoordinates.Y, oldCoordinates.X] = null;
-                Arena[newY, newX] = ship;
-                return null;
-            }
-            var targetShip = Arena[newX, newY];
+            var targetShip = Arena[newY, newX];
             Arena[newY, newX] = ship;
             Arena[oldCoordinates.Y, oldCoordinates.X] = targetShip;
             return targetShip;

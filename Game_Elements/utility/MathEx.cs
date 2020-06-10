@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Numerics;
 
-namespace Game_Components.utility {
+namespace Game_Elements.utility {
     public static class MathEx {
         public static Vector2 RotatePoint(float xc, float yc, float x, float y, float angleRad) {
             var x1 = (x - xc) * MathF.Cos(angleRad) - (y - yc) * MathF.Sin(angleRad) + xc;

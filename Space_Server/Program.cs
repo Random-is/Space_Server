@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Game_Components;
-using Game_Components.arena;
-using Game_Components.fight;
-using Game_Components.ship;
-using Game_Components.ship.ship_part;
-using Game_Components.utility;
+using Game_Elements;
+using Game_Elements.arena;
+using Game_Elements.fight;
+using Game_Elements.ship;
+using Game_Elements.ship.ship_part;
+using Game_Elements.utility;
 using Space_Server.game;
 using Space_Server.server;
 using Space_Server.utility;
@@ -16,15 +16,15 @@ namespace Space_Server {
         public static void Main(string[] args) {
             Console.OutputEncoding = System.Text.Encoding.UTF8;
             
-            Log.Print($"Process x64 {Environment.Is64BitProcess}");
-            var server = new Server(4444);
-            server.InitAndStart();
-            while (true) {
-                Console.ReadLine();
-                Log.Print("GC Collect -> Start");
-                GC.Collect();
-                Log.Print("GC Collect -> Complete");
-            }
+            // Log.Print($"Process x64 {Environment.Is64BitProcess}");
+            // var server = new Server(4444);
+            // server.InitAndStart();
+            // while (true) {
+            //     Console.ReadLine();
+            //     Log.Print("GC Collect -> Start");
+            //     GC.Collect();
+            //     Log.Print("GC Collect -> Complete");
+            // }
             
             // const int length = 8;
             // var clients = new ConcurrentList<NetworkClient>();

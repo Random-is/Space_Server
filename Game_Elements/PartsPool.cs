@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Game_Components.ship.ship_part;
+using Game_Elements.ship.ship_part;
 
-namespace Game_Components {
+namespace Game_Elements {
     public class PartsPool<T> : Dictionary<TierName, T> where T : List<ShipPart>, new() {
         public void Generate(IEnumerable<ShipPart> components, Random random) {
             Clear();

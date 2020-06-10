@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using Game_Components.fight;
+using Game_Elements.fight;
 
-namespace Game_Components.ship.ship_part {
+namespace Game_Elements.ship.ship_part {
     public enum ShipPartType {
         Gun,
         Facing,
@@ -13,8 +13,12 @@ namespace Game_Components.ship.ship_part {
         Gun1,
         Gun2,
         Gun3,
-        Gun4,
-        Gun5
+        Facing1,
+        Facing2,
+        Facing3,
+        Rector1,
+        Rector2,
+        Rector3
     }
 
     public class ShipPart {

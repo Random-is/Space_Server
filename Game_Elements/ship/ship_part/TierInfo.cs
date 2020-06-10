@@ -1,7 +1,7 @@
 ﻿using System.Collections.Concurrent;
 using System.Collections.Generic;
 
-namespace Game_Components.ship.ship_part {
+namespace Game_Elements.ship.ship_part {
     public static class TierInfo {
         private static readonly ConcurrentDictionary<int, int[]> ChancesByLvl = new ConcurrentDictionary<int, int[]> {
             [1] = new[] {100, 0, 0, 0, 0},

@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 
-namespace Game_Components.ship.ship_part {
-    public static class ShipComponentInfo {
+namespace Game_Elements.ship.ship_part {
+    public static class ShipPartInfo {
         public static readonly Dictionary<ShipPartName, ShipPart> All =
             new Dictionary<ShipPartName, ShipPart> {
                 [ShipPartName.Gun1] = new ShipPart(
@@ -9,7 +9,7 @@ namespace Game_Components.ship.ship_part {
                     ShipPartName.Gun1,
                     TierName.One,
                     new Dictionary<ShipClassName, int> {
-                        [ShipClassName.Fighter] = 1
+                        [ShipClassName.Fighter] = 8
                     },
                     new ShipPartSpell(
                         (fightShips, ship, random) => { },
@@ -17,9 +17,9 @@ namespace Game_Components.ship.ship_part {
                 [ShipPartName.Gun2] = new ShipPart(
                     ShipPartType.Gun,
                     ShipPartName.Gun2,
-                    TierName.Two,
+                    TierName.One,
                     new Dictionary<ShipClassName, int> {
-                        [ShipClassName.Fighter] = 2
+                        [ShipClassName.Fighter] = 8
                     },
                     new ShipPartSpell(
                         (fightShips, ship, random) => { },
@@ -27,33 +27,73 @@ namespace Game_Components.ship.ship_part {
                 [ShipPartName.Gun3] = new ShipPart(
                     ShipPartType.Gun,
                     ShipPartName.Gun3,
-                    TierName.Three,
+                    TierName.One,
                     new Dictionary<ShipClassName, int> {
-                        [ShipClassName.Fighter] = 3
+                        [ShipClassName.Fighter] = 8
                     },
                     new ShipPartSpell(
                         (fightShips, ship, random) => { },
                         1)),
-                [ShipPartName.Gun4] = new ShipPart(
-                    ShipPartType.Gun,
-                    ShipPartName.Gun4,
-                    TierName.Four,
+                [ShipPartName.Facing1] = new ShipPart(
+                    ShipPartType.Facing,
+                    ShipPartName.Facing1,
+                    TierName.One,
                     new Dictionary<ShipClassName, int> {
-                        [ShipClassName.Fighter] = 4
+                        [ShipClassName.Armored] = 8
                     },
                     new ShipPartSpell(
                         (fightShips, ship, random) => { },
                         1)),
-                [ShipPartName.Gun5] = new ShipPart(
-                    ShipPartType.Gun,
-                    ShipPartName.Gun5,
-                    TierName.Five,
+                [ShipPartName.Facing2] = new ShipPart(
+                    ShipPartType.Facing,
+                    ShipPartName.Facing2,
+                    TierName.One,
                     new Dictionary<ShipClassName, int> {
-                        [ShipClassName.Fighter] = 5
+                        [ShipClassName.Armored] = 8
                     },
                     new ShipPartSpell(
                         (fightShips, ship, random) => { },
-                        1))
+                        1)),
+                [ShipPartName.Facing3] = new ShipPart(
+                    ShipPartType.Facing,
+                    ShipPartName.Facing3,
+                    TierName.One,
+                    new Dictionary<ShipClassName, int> {
+                        [ShipClassName.Armored] = 8
+                    },
+                    new ShipPartSpell(
+                        (fightShips, ship, random) => { },
+                        1)),
+                [ShipPartName.Rector1] = new ShipPart(
+                    ShipPartType.Reactor,
+                    ShipPartName.Rector1,
+                    TierName.One,
+                    new Dictionary<ShipClassName, int> {
+                        [ShipClassName.Technodroid] = 8
+                    },
+                    new ShipPartSpell(
+                        (fightShips, ship, random) => { },
+                        1)),
+                [ShipPartName.Rector2] = new ShipPart(
+                    ShipPartType.Reactor,
+                    ShipPartName.Rector1,
+                    TierName.One,
+                    new Dictionary<ShipClassName, int> {
+                        [ShipClassName.Technodroid] = 8
+                    },
+                    new ShipPartSpell(
+                        (fightShips, ship, random) => { },
+                        1)),
+                [ShipPartName.Rector3] = new ShipPart(
+                    ShipPartType.Reactor,
+                    ShipPartName.Rector1,
+                    TierName.One,
+                    new Dictionary<ShipClassName, int> {
+                        [ShipClassName.Technodroid] = 8
+                    },
+                    new ShipPartSpell(
+                        (fightShips, ship, random) => { },
+                        1)),
             };
     }
 }

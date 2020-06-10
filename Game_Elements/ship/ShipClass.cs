@@ -1,4 +1,4 @@
-﻿namespace Game_Components.ship {
+﻿namespace Game_Elements.ship {
     public enum ShipClassName {
         Armored,
         Bomber,
