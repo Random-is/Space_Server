@@ -13,7 +13,9 @@ namespace Game_Elements.ship.ship_part {
                     },
                     new ShipPartSpell(
                         (fightShips, ship, random) => { },
-                        1)),
+                        1),
+                    new Dictionary<ShipParameterName, float> {
+                    }),
                 [ShipPartName.Gun2] = new ShipPart(
                     ShipPartType.Gun,
                     ShipPartName.Gun2,
@@ -23,7 +25,9 @@ namespace Game_Elements.ship.ship_part {
                     },
                     new ShipPartSpell(
                         (fightShips, ship, random) => { },
-                        1)),
+                        1),
+                    new Dictionary<ShipParameterName, float> {
+                    }),
                 [ShipPartName.Gun3] = new ShipPart(
                     ShipPartType.Gun,
                     ShipPartName.Gun3,
@@ -33,7 +37,9 @@ namespace Game_Elements.ship.ship_part {
                     },
                     new ShipPartSpell(
                         (fightShips, ship, random) => { },
-                        1)),
+                        1),
+                    new Dictionary<ShipParameterName, float> {
+                    }),
                 [ShipPartName.Facing1] = new ShipPart(
                     ShipPartType.Facing,
                     ShipPartName.Facing1,
@@ -43,7 +49,9 @@ namespace Game_Elements.ship.ship_part {
                     },
                     new ShipPartSpell(
                         (fightShips, ship, random) => { },
-                        1)),
+                        1),
+                    new Dictionary<ShipParameterName, float> {
+                    }),
                 [ShipPartName.Facing2] = new ShipPart(
                     ShipPartType.Facing,
                     ShipPartName.Facing2,
@@ -53,7 +61,9 @@ namespace Game_Elements.ship.ship_part {
                     },
                     new ShipPartSpell(
                         (fightShips, ship, random) => { },
-                        1)),
+                        1),
+                    new Dictionary<ShipParameterName, float> {
+                    }),
                 [ShipPartName.Facing3] = new ShipPart(
                     ShipPartType.Facing,
                     ShipPartName.Facing3,
@@ -63,7 +73,9 @@ namespace Game_Elements.ship.ship_part {
                     },
                     new ShipPartSpell(
                         (fightShips, ship, random) => { },
-                        1)),
+                        1),
+                    new Dictionary<ShipParameterName, float> {
+                    }),
                 [ShipPartName.Rector1] = new ShipPart(
                     ShipPartType.Reactor,
                     ShipPartName.Rector1,
@@ -73,27 +85,33 @@ namespace Game_Elements.ship.ship_part {
                     },
                     new ShipPartSpell(
                         (fightShips, ship, random) => { },
-                        1)),
+                        1),
+                    new Dictionary<ShipParameterName, float> {
+                    }),
                 [ShipPartName.Rector2] = new ShipPart(
                     ShipPartType.Reactor,
-                    ShipPartName.Rector1,
+                    ShipPartName.Rector2,
                     TierName.One,
                     new Dictionary<ShipClassName, int> {
                         [ShipClassName.Technodroid] = 8
                     },
                     new ShipPartSpell(
                         (fightShips, ship, random) => { },
-                        1)),
+                        1),
+                    new Dictionary<ShipParameterName, float> {
+                    }),
                 [ShipPartName.Rector3] = new ShipPart(
                     ShipPartType.Reactor,
-                    ShipPartName.Rector1,
+                    ShipPartName.Rector3,
                     TierName.One,
                     new Dictionary<ShipClassName, int> {
                         [ShipClassName.Technodroid] = 8
                     },
                     new ShipPartSpell(
                         (fightShips, ship, random) => { },
-                        1)),
+                        1),
+                    new Dictionary<ShipParameterName, float> {
+                    }),
             };
     }
 }

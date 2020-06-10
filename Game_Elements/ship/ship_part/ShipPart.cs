@@ -25,21 +25,25 @@ namespace Game_Elements.ship.ship_part {
         public ShipPartType Type { get; }
         public ShipPartName Name { get; }
         public TierName TierName { get; }
-        public Dictionary<ShipClassName, int> Classes { get; }
+        
+        public Dictionary<ShipParameterName, float> Parameters { get; }
         public ShipPartSpell Spell { get; }
+        public Dictionary<ShipClassName, int> Classes { get; }
 
         public ShipPart(
             ShipPartType type,
             ShipPartName name,
             TierName tierName,
             Dictionary<ShipClassName, int> classes,
-            ShipPartSpell spell
+            ShipPartSpell spell,
+            Dictionary<ShipParameterName, float> parameters
         ) {
             Type = type;
             Name = name;
             TierName = tierName;
             Classes = classes;
             Spell = spell;
+            Parameters = parameters;
         }
 
         public override string ToString() {

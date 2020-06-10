@@ -76,6 +76,20 @@ namespace Space_Server {
             //     });
             // Console.WriteLine($"Winner {fightResult.Winner.Nickname}");
             // Console.ReadLine();
+            
+            var shipClassesDict = new Dictionary<ShipClassName, int>();
+            var shipClassesDict1 = new Dictionary<ShipClassName, int> {
+                [ShipClassName.Armored] = 1,
+                [ShipClassName.Bomber] = 1
+            };
+            var shipClassesDict2 = new Dictionary<ShipClassName, int> {
+                [ShipClassName.Armored] = 2,
+                [ShipClassName.Technodroid] = 3
+            };
+            var result = shipClassesDict1.ConcatWithAddition(shipClassesDict2);
+            foreach (var (key, value) in result) {
+                Console.WriteLine($"{key} {value}");
+            }
         }
 
         private static void PrintMas(Ship[,] matrix) {
