@@ -105,7 +105,7 @@ namespace Space_Server.game {
             var fightRandomSeed = _random.Next();
             var fightTasks = new List<Task<FightResult>>();
             foreach (var pvpFight in PvpFights) {
-                var fightTask = new Task<FightResult>(() => Fight.CalcWinner(pvpFight.FirstPlayer.GamePlayer, pvpFight.SecondPlayer.GamePlayer, pvpFight.PvpArena, fightDurationSeconds, new Random(fightRandomSeed)));
+                var fightTask = new Task<FightResult>(() => Fight.CalcWinner(pvpFight.PvpArena, fightDurationSeconds, new Random(fightRandomSeed)));
                 fightTasks.Add(fightTask);
                 fightTask.Start();
             }
@@ -363,7 +363,7 @@ namespace Space_Server.game {
                 var newX = int.Parse(args[1]);
                 var newY = int.Parse(args[2]);
                 var player = client.GamePlayer;
-                if (player.PersonArena.Arena[newX, newY] == null) {
+                if (player.PlayerArena.Arena[newX, newY] == null) {
                     player.ShipReposition(player.Ships[shipIndex], newX, newY);
                     SendShipReposition(client, shipIndex, newX, newY);
                 }

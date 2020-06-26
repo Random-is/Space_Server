@@ -3,10 +3,10 @@ using Game_Elements.ship;
 using Game_Elements.utility;
 
 namespace Game_Elements.arena {
-    public class PersonArena {
-        public const int YSize = 3;
-        public const int XSize = 6;
-        public Ship[,] Arena { get; } = new Ship[YSize, XSize];
+    public class PlayerArena {
+        public const int YCount = 3;
+        public const int XCount = 6;
+        public Ship[,] Arena { get; } = new Ship[YCount, XCount];
 
         public IntVector2 AddShip(Ship ship) {
             var freeSpaceCoordinates = GetFreeSpace();
@@ -16,6 +16,8 @@ namespace Game_Elements.arena {
 
         public Ship ShipReposition(Ship ship, int newY, int newX) {
             var oldCoordinates = Arena.CoordinatesOf(ship);
+            Console.WriteLine(oldCoordinates);
+            Console.WriteLine(Arena[newY, newX]);
             var targetShip = Arena[newY, newX];
             Arena[newY, newX] = ship;
             Arena[oldCoordinates.Y, oldCoordinates.X] = targetShip;

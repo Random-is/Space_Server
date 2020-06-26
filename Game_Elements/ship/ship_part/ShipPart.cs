@@ -13,6 +13,16 @@ namespace Game_Elements.ship.ship_part {
         Gun1,
         Gun2,
         Gun3,
+        Gun4,
+        Gun5,
+        Gun6,
+        Gun7,
+        Gun8,
+        Gun9,
+        Gun10,
+        Gun11,
+        Gun12,
+        Gun13,
         Facing1,
         Facing2,
         Facing3,
@@ -31,15 +41,15 @@ namespace Game_Elements.ship.ship_part {
         public Dictionary<ShipClassName, int> Classes { get; }
 
         public ShipPart(
-            ShipPartType type,
             ShipPartName name,
+            ShipPartType type,
             TierName tierName,
             Dictionary<ShipClassName, int> classes,
             ShipPartSpell spell,
             Dictionary<ShipParameterName, float> parameters
         ) {
-            Type = type;
             Name = name;
+            Type = type;
             TierName = tierName;
             Classes = classes;
             Spell = spell;

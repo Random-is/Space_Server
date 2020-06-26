@@ -1,4 +1,6 @@
-﻿namespace Game_Elements.utility {
+﻿using System.Collections.Generic;
+
+namespace Game_Elements.utility {
     public static class ArrayEx {
         public static IntVector2 CoordinatesOf<T>(this T[,] array, T value) {
             for (var y = 0; y < array.GetLength(0); y++) {
@@ -8,6 +10,10 @@
                 }
             }
             return new IntVector2 {X = -1, Y = -1};
+        }
+
+        public static T Get<T>(this T[,] array, IntVector2 position) {
+            return array[position.Y, position.X];
         }
     }
 }

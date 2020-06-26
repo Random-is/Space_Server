@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
 using Game_Elements.arena;
 using Game_Elements.ship;
@@ -8,11 +9,13 @@ using Game_Elements.utility;
 
 namespace Game_Elements.fight {
     public class FightShip {
-        public Ship Ship { get; set; }
+        public const float ShipRadius = 5;
+        public const float MinDistanceToShip = ShipRadius * 1.5f;
+        public Ship Ship { get; }
         public GamePlayer Player { get; }
-        public bool Alive { get; set; }
+        public bool Alive => Hp > 0;
         public int BusyTicksSpell { get; set; }
-        public int BusyTicksAA { get; set; }
+        public int BusyTicksAttack { get; set; }
         public List<ShipPartSpell> AfterBusySpells { get; set; }
         public int ActiveSpellIndex { get; set; }
         public FightShip Target { get; set; }
@@ -25,28 +28,38 @@ namespace Game_Elements.fight {
         public int MaxEnergy { get; set; }
         public int EnergyRegenPerAttack { get; set; }
         public int Hp { get; set; }
-        public float X { get; set; }
-        public float Y { get; set; }
+        
+        public Vector2 Position { get; set; }
+        public FightArena Arena { get; }
+
+        public float X {
+            get => Position.X;
+            set => Position = new Vector2(value, Position.Y);
+        }
+
+        public float Y {
+            get => Position.Y; 
+            set => Position = new Vector2(Position.X, value);
+        }
         public float RotateAngle { get; set; }
 
-        public FightShip(Ship ship, IntVector2 coordinates, GamePlayer player) {
+        public FightShip(Ship ship, Vector2 position, FightArena arena, GamePlayer player) {
             Ship = ship;
             Player = player;
-            Alive = true;
             BusyTicksSpell = 0;
             Energy = 0;
             Target = null;
             AfterBusySpells = new List<ShipPartSpell>();
-            BusyTicksAA = -1;
-            CalcPosition(coordinates, 5, 5);
-            RotateAngle = coordinates.Y < PvpArena.YSize / 2 ? 180 : 0;
+            BusyTicksAttack = -1;
+            Position = position;
+            Arena = arena;
+            RotateAngle = position.Y < FightArena.Height / 2f ? 180 : 0;
             RotateSpeed = 50;
             MoveSpeed = 15;
-            AttackRange = 5;
+            AttackRange = 10;
             Hp = 15;
             AttackSpeed = 3;
             AttackDamage = 1;
-
             //calc All params
             //calc HP
             //calc MaxEnergy
@@ -57,19 +70,36 @@ namespace Game_Elements.fight {
             //etc
         }
 
-        public void ToPhysicalDamage(int damage) {
-            Hp -= damage;
-            if (Hp <= 0) {
-                Alive = false;
-            }
+        public void CalcParams(Ship ship) {
+            var shipParams = ship.GetParameters();
+            shipParams.AddNotExistEnumKeysToDictionary();
         }
 
-        public void ToMagicDamage(int damage) {
+        public void TakePhysicalDamage(int damage) {
             Hp -= damage;
         }
 
-        public float CalcAngle(FightShip targetShip) {
-            var targetShipPosition = MathEx.RotatePoint(X, Y, targetShip.X, targetShip.Y, RotateAngle * MathF.PI / 180);
+        public void TakeMagicDamage(int damage) {
+            Hp -= damage;
+        }
+
+        public bool IsLookAt(Vector2 target) {
+            return Math.Abs(CalcAngle(target)) < float.Epsilon;
+        }
+
+        public List<Vector2> FindPath(Vector2 target) {
+            var path = new List<Vector2>();
+            path.Add(target);
+            // var pathCompleted = false;
+            // var currentPosition = Position;
+            // while (!pathCompleted) {
+            //     
+            // }
+            return path;
+        }
+
+        public float CalcAngle(Vector2 target) {
+            var targetShipPosition = MathEx.RotatePoint(X, Y, target.X, target.Y, MathEx.DegToRad(RotateAngle));
             var a1 = -1;
             var b1 = 0;
             var a2 = targetShipPosition.Y - Y;
@@ -78,34 +108,52 @@ namespace Game_Elements.fight {
                 (a1 * a2 + b1 * b2) /
                 (MathF.Sqrt(MathF.Pow(a1, 2) + MathF.Pow(b1, 2)) * MathF.Sqrt(MathF.Pow(a2, 2) + MathF.Pow(b2, 2)))
             );
-            var angleDegree = angleRad * (180 / MathF.PI);
+            var angleDegree = MathEx.RadToDeg(angleRad);
             angleDegree = targetShipPosition.X <= X ? angleDegree : -angleDegree;
+            angleDegree = MathF.Abs(angleDegree) > 0.1 ? angleDegree : 0;
             return angleDegree;
         }
 
         public float CalcDistance(FightShip targetShip) {
-            return Vector2.Distance(new Vector2(X, Y), new Vector2(targetShip.X, targetShip.Y));
+            return Vector2.Distance(Position, targetShip.Position);
         }
 
-        public void CalcPosition(IntVector2 coordinates, int cellXSize, int cellYSize) {
-            X = coordinates.X * cellXSize + cellXSize / 2;
-            Y = coordinates.Y * cellYSize + cellYSize / 2;
-        }
-
-        public void RotateToTarget(in int tickRate) {
-            var angleToTarget = CalcAngle(Target);
+        public void RotateTo(Vector2 target, in int tickRate) {
+            var angleToTarget = CalcAngle(target);
             var tickRotate = RotateSpeed / tickRate;
-            // Console.WriteLine($"RTT {angleToTarget} {tickRotate} {RotateAngle}");
             RotateAngle += MathF.Abs(angleToTarget) > tickRotate ? MathF.Sign(angleToTarget) * tickRotate : angleToTarget;
         }
 
-        public void MoveToTarget(in int tickRate) {
-            var newPosition = Vector2Ex.MoveTowards(new Vector2(X, Y),
-                new Vector2(Target.X, Target.Y),
+        public void MoveTo(Vector2 target, in int tickRate) {
+            var newPosition = Vector2Ex.MoveTowards(
+                Position,
+                target,
                 MoveSpeed / tickRate
             );
-            Y = newPosition.Y;
-            X = newPosition.X;
+            foreach (var fightShip in Arena.FightShips.Where(ship => ship != this)) {
+                var distanceToShip = Vector2.Distance(newPosition, fightShip.Position);
+                if (distanceToShip < MinDistanceToShip && Vector2.Distance(Position, target) > Vector2.Distance(fightShip.Position, target)) {
+                    newPosition = Vector2Ex.MoveTowards(
+                        newPosition,
+                        Position,
+                        MinDistanceToShip - distanceToShip
+                    );
+                    var newTarget = MathEx.RotatePoint(
+                        newPosition.X, 
+                        newPosition.Y, 
+                        target.X, 
+                        target.Y, 
+                        MathEx.DegToRad(
+                            MathF.Sign(CalcAngle(fightShip.Position)) * 90)
+                        );
+                    newPosition = Vector2Ex.MoveTowards(
+                        newPosition,
+                        newTarget,
+                        MinDistanceToShip - distanceToShip
+                    );
+                }
+            }
+            Position = newPosition;
         }
     }
 }

@@ -58,5 +58,15 @@ namespace Game_Elements.utility {
                 }
             }
         }
+        
+        public static void AddNotExistEnumKeysToDictionary<TKey, TValue>(
+            this Dictionary<TKey, TValue> dictionary
+        ) where TKey : Enum {
+            foreach (TKey key in Enum.GetValues(typeof(TKey))) {
+                if (!dictionary.ContainsKey(key)) {
+                    dictionary[key] = default;
+                }
+            }
+        }
     }
 }

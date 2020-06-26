@@ -15,7 +15,7 @@ namespace Game_Elements {
         public int Level { get; set; }
         public List<Ship> Ships { get; set; }
         public ShipPart[] Bag { get; set; }
-        public PersonArena PersonArena { get; set; }
+        public PlayerArena PlayerArena { get; set; }
         public ShipPart[] Shop { get; set; }
 
         public void Set(
@@ -25,7 +25,7 @@ namespace Game_Elements {
             int level,
             List<Ship> spaceShips,
             ShipPart[] boughtComponents,
-            PersonArena arena,
+            PlayerArena arena,
             ShipPart[] shop
         ) {
             Hp = hp;
@@ -34,20 +34,20 @@ namespace Game_Elements {
             Level = level;
             Ships = spaceShips;
             Bag = boughtComponents;
-            PersonArena = arena;
+            PlayerArena = arena;
             Shop = shop;
         }
 
         public void Reset() {
             Set(100, 4, 0, 1, new List<Ship>(),
-                new ShipPart[8], new PersonArena(), new ShipPart[5]
+                new ShipPart[8], new PlayerArena(), new ShipPart[5]
             );
         }
 
         public IntVector2 AddShip(ShipHullName shipHullName) {
             var newShip = new Ship(ShipHullInfo.All[shipHullName]);
             Ships.Add(newShip);
-            var coordinates = PersonArena.AddShip(newShip);
+            var coordinates = PlayerArena.AddShip(newShip);
             return coordinates;
         }
 
@@ -78,7 +78,7 @@ namespace Game_Elements {
         public bool IsNewLvl() => Xp == 0;
 
         public Ship ShipReposition(Ship ship, int newY, int newX) {
-            return PersonArena.ShipReposition(ship, newY, newX);
+            return PlayerArena.ShipReposition(ship, newY, newX);
         }
 
         public bool CanBuyComponent(int shopIndex) {
@@ -117,7 +117,7 @@ namespace Game_Elements {
 
         public Dictionary<ShipClassName, int> GetShipsClasses() {
             var shipsClasses = new Dictionary<ShipClassName, int>();
-            foreach (var shipClass in Ships.SelectMany(ship => ship.GetClasses())) {
+            foreach (var shipClass in Ships.SelectMany(ship => ship.GetActiveClasses())) {
                 if (shipsClasses.ContainsKey(shipClass)) {
                     shipsClasses[shipClass] += 1;
                 } else {

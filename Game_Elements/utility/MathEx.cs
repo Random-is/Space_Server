@@ -8,5 +8,13 @@ namespace Game_Elements.utility {
             var y1 = (x - xc) * MathF.Sin(angleRad) + (y - yc) * MathF.Cos(angleRad) + yc;
             return new Vector2 {X = x1, Y = y1};
         }
+
+        public static float RadToDeg(float radAngle) {
+            return radAngle * (180 / MathF.PI);
+        }
+        
+        public static float DegToRad(float degAngle) {
+            return degAngle * (MathF.PI / 180);
+        }
     }
 }

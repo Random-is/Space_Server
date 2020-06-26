@@ -5,18 +5,18 @@ using Space_Server.server;
 
 namespace Space_Server.game {
     public class PvpFight {
-        public NetworkClient FirstPlayer { get; }
-        public NetworkClient SecondPlayer { get; }
-        public PvpArena PvpArena { get; }
+        public NetworkClient MainPlayer { get; }
+        public NetworkClient OpponentPlayer { get; }
+        public FightArena PvpArena { get; }
 
-        public PvpFight(NetworkClient firstPlayer, NetworkClient secondPlayer) {
-            FirstPlayer = firstPlayer;
-            SecondPlayer = secondPlayer;
-            PvpArena = new PvpArena();
+        public PvpFight(NetworkClient mainPlayer, NetworkClient opponentPlayer) {
+            MainPlayer = mainPlayer;
+            OpponentPlayer = opponentPlayer;
+            PvpArena = new FightArena(mainPlayer.GamePlayer, opponentPlayer.GamePlayer);
         }
 
         public override string ToString() {
-            return $"{FirstPlayer.GamePlayer.Nickname} vs {SecondPlayer.GamePlayer.Nickname}";
+            return $"{MainPlayer.GamePlayer.Nickname} vs {OpponentPlayer.GamePlayer.Nickname}";
         }
     }
 }
