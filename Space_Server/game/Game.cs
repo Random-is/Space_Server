@@ -23,14 +23,13 @@ namespace Space_Server.game {
         public ConcurrentDictionary<NetworkClient, NetworkClient> LastOpponents { get; set; }
         public ConcurrentList<PvpFight> PvpFights { get; set; }
         public NetworkClient LastDead { get; set; }
-        public List<GamePlayer> GamePlayers { get; }
+        public ConcurrentList<GamePlayer> GamePlayers { get; set; }
         public PartsPool<ConcurrentList<ShipPart>> Pool { get; set; }
 
         public Game(ConcurrentList<NetworkClient> clients) {
             AllClients = clients;
             AliveClients = new ConcurrentList<NetworkClient>();
             AliveClients.TryAddRange(clients);
-            GamePlayers = AliveClients.Select(client => client.GamePlayer).ToList();
         }
 
         public void Start() {
@@ -42,6 +41,7 @@ namespace Space_Server.game {
         public void Generate() {
             _random = new Random();
             LastOpponents = new ConcurrentDictionary<NetworkClient, NetworkClient>();
+            GamePlayers = new ConcurrentList<GamePlayer>();
             Pool = new PartsPool<ConcurrentList<ShipPart>>();
             Pool.Generate(ShipPartInfo.All.Values, _random);
             foreach (var client in AliveClients) {
@@ -152,7 +152,7 @@ namespace Space_Server.game {
         private ConcurrentList<PvpFight> GenerateFights(IReadOnlyList<NetworkClient> aliveClients) {
             var pvpFights = new ConcurrentList<PvpFight>();
             if (aliveClients.Count == 2) {
-                pvpFights.Add(new PvpFight(aliveClients[0], aliveClients[1]));
+                pvpFights.Add(CreatePvpFight(aliveClients[0], aliveClients[1]));
             } else {
                 var tempClients = new List<NetworkClient>(aliveClients);
                 if (tempClients.Count % 2 != 0)
