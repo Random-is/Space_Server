@@ -297,6 +297,7 @@ namespace Space_Server.game {
             client.AddCommand(CommandType.GAME, "GAME_SHOP_ROLL", args => {
                 if (client.GamePlayer.Money >= RollCost) {
                     client.GamePlayer.ChangeMoney(-2);
+                    SendMoney(client);
                     RollShop(client.GamePlayer);
                     SendShop(client);
                 }

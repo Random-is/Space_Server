@@ -5,8 +5,8 @@ using System.Threading;
 
 namespace Space_Server.server {
     internal static class Net {
-        public static void SendAll(List<NetworkClient> players, string message) {
-            players.ForEach(player => player.TcpSend(message));
+        public static void SendAll(List<NetworkClient> clients, string message) {
+            clients.ForEach(client => client.TcpSend(message));
         }
 
         public static ConcurrentDictionary<NetworkClient, bool> WaitAllAsync(

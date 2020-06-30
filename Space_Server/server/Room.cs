@@ -19,7 +19,11 @@ namespace Space_Server.server {
         private void CreateGame() {
             Game = new Game(Clients);
             Game.Generate();
-            Net.WaitAll(Clients, "ROOM_LOADED", out var handled, () => Net.SendAll(Clients, "ROOM_CREATED"));
+            Net.WaitAll(Clients, "ROOM_LOADED", out var handled, () => {
+                for (var i = 0; i < Clients.Count; i++) {
+                    Clients[i].TcpSend($"ROOM_CREATED:{i}");;
+                }
+            });
             Game.Start();
         }
     }
