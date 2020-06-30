@@ -8,8 +8,14 @@ namespace Game_Elements.arena {
         public const int XCount = 6;
         public Ship[,] Arena { get; } = new Ship[YCount, XCount];
 
-        public IntVector2 AddShip(Ship ship) {
+        public IntVector2 AddShipToFreePosition(Ship ship) {
             var freeSpaceCoordinates = GetFreeSpace();
+            Arena[freeSpaceCoordinates.Y, freeSpaceCoordinates.X] = ship;
+            return freeSpaceCoordinates;
+        }
+        
+        public IntVector2 AddShipToPosition(Ship ship, IntVector2 position) {
+            var freeSpaceCoordinates = position;
             Arena[freeSpaceCoordinates.Y, freeSpaceCoordinates.X] = ship;
             return freeSpaceCoordinates;
         }

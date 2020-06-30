@@ -47,14 +47,13 @@ namespace Space_Server.game {
             foreach (var client in AliveClients) {
                 client.GamePlayer.Reset();
                 GamePlayers.Add(client.GamePlayer);
-                RollShop(client.GamePlayer);
             }
         }
 
         private void PlayRound(int round) {
             PvpFights = GenerateFights(AliveClients);
             foreach (var gamePlayer in GamePlayers) {
-                gamePlayer.AddXp(LvlUpCost);
+                gamePlayer.AddXp(1);
                 gamePlayer.ChangeMoney(5);
                 RollShop(gamePlayer);
             }
@@ -75,14 +74,14 @@ namespace Space_Server.game {
                 SendOpponent(client);
             }
 
-            const int buySeconds = 5;
+            const int buySeconds = 15;
             for (var currentSecond = 0; currentSecond < buySeconds; currentSecond++) {
                 var timeLeft = buySeconds - currentSecond;
                 AliveClients.ForEach(client => SendTime(client, timeLeft));
                 Thread.Sleep(1000);
             }
 
-            const int positioningSeconds = 5;
+            const int positioningSeconds = 15;
             foreach (var client in AliveClients) {
                 RemoveCommandLvlUp(client);
                 RemoveCommandShopBuy(client);
@@ -97,7 +96,7 @@ namespace Space_Server.game {
                 Thread.Sleep(1000);
             }
 
-            const int fightDurationSeconds = 5;
+            const int fightDurationSeconds = 20;
             foreach (var client in AliveClients) {
                 RemoveCommandShipReposition(client);
                 SendPhaseFighting(client);
@@ -228,14 +227,14 @@ namespace Space_Server.game {
         private void SendShop(NetworkClient client) {
             var message = "GAME_SHOP_UPDATE:";
             foreach (var componentType in client.GamePlayer.Shop) {
-                message = message + $"{componentType} ";
+                message = message + $"{(int) componentType.Name} ";
             }
             message = message.Remove(message.Length - 1);
             client.TcpSend(message);
         }
         
-        private void SendAddShip(NetworkClient client, ShipHullName shipHullName, int newX, int newY) {
-            var message = $"GAME_ADD_SHIP:{shipHullName} {newX} {newY}";
+        private void SendAddShip(NetworkClient client, ShipHullName shipHullName, int newY, int newX) {
+            var message = $"GAME_ADD_SHIP:{shipHullName} {newY} {newX}";
             client.TcpSend(message);
         }
 
@@ -265,22 +264,22 @@ namespace Space_Server.game {
         }
         
         private void SendLvlUp(NetworkClient client) {
-            var message = $"GAME_LVL_UP:{client.GamePlayer.Level}";
+            var message = $"GAME_LVL_UP:{client.GamePlayer.Lvl}";
             client.TcpSend(message);
         }
         
-        private void SendShipReposition(NetworkClient client, int shipIndex, int newX, int newY) {
-            var message = $"GAME_SHIP_REPOSITION:{shipIndex} {newX} {newY}";
+        private void SendShipReposition(NetworkClient client, int shipIndex, int newY, int newX) {
+            var message = $"GAME_SHIP_REPOSITION:{shipIndex} {newY} {newX}";
             client.TcpSend(message);
         }
         
         private void SendBuyComponent(NetworkClient client, int shopIndex) {
-            var message = $"GAME_BUY:{shopIndex}";
+            var message = $"GAME_SHOP_BUY:{shopIndex}";
             client.TcpSend(message);
         }
         
         private void SendAddBagComponent(NetworkClient client, ShipPart shipPart) {
-            var message = $"GAME_ADD_COMPONENT:{shipPart.Name}";
+            var message = $"GAME_ADD_BAG_ITEM:{(int) shipPart.Name}";
             client.TcpSend(message);
         }
 
@@ -289,8 +288,8 @@ namespace Space_Server.game {
             ship.Parts[newShipPart.Type] = newShipPart;
         }
 
-        private void SendAddShipComponent(NetworkClient client, int shipIndex, ShipPart shipPart) {
-            var message = $"GAME_ADD_SHIP_COMPONENT:{shipIndex} {shipPart.Name}";
+        private void SendAddPartToShip(NetworkClient client, int shipIndex, int bagIndex) {
+            var message = $"GAME_ADD_PART_TO_SHIP:{shipIndex} {bagIndex}";
             client.TcpSend(message);
         }
 
@@ -307,11 +306,11 @@ namespace Space_Server.game {
         private void AddCommandShopBuy(NetworkClient client) {
             client.AddCommand(CommandType.GAME, "GAME_SHOP_BUY", args => {
                 var index = int.Parse(args[0]);
-                if (client.GamePlayer.CanBuyComponent(index)) {
-                    var component = client.GamePlayer.BuyComponent(index);
+                if (client.GamePlayer.CanBuyShipPart(index)) {
+                    var component = client.GamePlayer.BuyShipPart(index);
                     SendBuyComponent(client, index);
                     SendMoney(client);
-                    client.GamePlayer.AddBagComponent(component);
+                    client.GamePlayer.AddBagItem(component);
                     SendAddBagComponent(client, component);
                 }
             });
@@ -329,7 +328,7 @@ namespace Space_Server.game {
             client.AddCommand(CommandType.GAME, "GAME_LVL_UP", args => {
                 var player = client.GamePlayer;
                 if (player.Money >= LvlUpCost) {
-                    player.AddXp(LvlUpCost);
+                    player.AddXp(1);
                     if (player.IsNewLvl())
                         SendLvlUp(client);
                     else
@@ -345,10 +344,11 @@ namespace Space_Server.game {
         private void AddCommandBuyShip(NetworkClient client) {
             client.AddCommand(CommandType.GAME, "GAME_BUY_SHIP", args => {
                 var player = client.GamePlayer;
-                if (player.Ships.Count < player.Level) {
+                if (player.Ships.Count < player.Lvl) {
                     var hullType = (ShipHullName) int.Parse(args[0]);
-                    var coordinates = player.AddShip(hullType);
-                    SendAddShip(client, hullType, coordinates.X, coordinates.Y);
+                    var newShip = new Ship(ShipHullInfo.All[hullType]);
+                    var coordinates = player.AddShipToFreePosition(newShip);
+                    SendAddShip(client, hullType, coordinates.Y, coordinates.X);
                 }
             });
         }
@@ -364,8 +364,8 @@ namespace Space_Server.game {
                 var newY = int.Parse(args[2]);
                 var player = client.GamePlayer;
                 if (player.PlayerArena.Arena[newX, newY] == null) {
-                    player.ShipReposition(player.Ships[shipIndex], newX, newY);
-                    SendShipReposition(client, shipIndex, newX, newY);
+                    player.ShipReposition(player.Ships[shipIndex], newY, newX);
+                    SendShipReposition(client, shipIndex, newY, newX);
                 }
             });
         }

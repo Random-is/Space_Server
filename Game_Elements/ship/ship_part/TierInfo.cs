@@ -12,11 +12,11 @@ namespace Game_Elements.ship.ship_part {
         };
 
         private static readonly Dictionary<TierName, Tier> All = new Dictionary<TierName, Tier> {
-            [TierName.One] = new Tier(100, 1),
-            [TierName.Two] = new Tier(8, 2),
-            [TierName.Three] = new Tier(6, 3),
-            [TierName.Four] = new Tier(4, 4),
-            [TierName.Five] = new Tier(2, 5),
+            [TierName.One] = new Tier(25, 1),
+            [TierName.Two] = new Tier(25, 2),
+            [TierName.Three] = new Tier(25, 3),
+            [TierName.Four] = new Tier(25, 4),
+            [TierName.Five] = new Tier(25, 5),
         };
 
         public static Tier Get(TierName tierName) {

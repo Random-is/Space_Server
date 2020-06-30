@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading;
 using Space_Server.utility;
 
@@ -18,7 +19,7 @@ namespace Space_Server.server {
             var searchPartyThread = new Thread(SearchPartyCycle);
             searchPartyThread.Start();
         }
-        
+
         private void SearchPartyCycle() {
             while (true) {
                 Log.Print($"Queue Size: {Count}");
@@ -41,9 +42,12 @@ namespace Space_Server.server {
         private void AcceptRoomCreation(ConcurrentList<NetworkClient> clients) {
             const int timeToAccept = 20;
             Log.Print($"Time to Accept {timeToAccept} sec");
-            if (Net.WaitAll(clients, "QUEUE_ACCEPT", out var handled, () => Net.SendAll(clients, "QUEUE_FOUND"))) {
-                Log.Print($"Create new Room {_rooms.Count}");
+            var accepted = Net.WaitAll(clients, "QUEUE_ACCEPT", out var handled,
+                () => Net.SendAll(clients, "QUEUE_FOUND"), timeToAccept * 1000);
+            Console.WriteLine($" acc = {accepted}");
+            if (accepted) {
                 Net.SendAll(clients, "QUEUE_LEAVE");
+                Log.Print($"Create new Room {_rooms.Count}");
                 var room = new Room(clients);
                 _rooms.TryAdd(room);
                 room.Start();

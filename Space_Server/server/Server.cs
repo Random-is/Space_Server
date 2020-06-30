@@ -24,7 +24,7 @@ namespace Space_Server.server {
         public void InitAndStart() {
             Clients = new ConcurrentList<NetworkClient>();
             Rooms = new ConcurrentList<Room>();
-            SearchQueue = new Queue(this, 4);
+            SearchQueue = new Queue(this, 2);
             UdpListener = new UdpClient(_port);
             TcpListener = new TcpListener(IPAddress.Any, _port);
             TcpListener.Start();

@@ -15,5 +15,11 @@ namespace Game_Elements.utility {
         public static T Get<T>(this T[,] array, IntVector2 position) {
             return array[position.Y, position.X];
         }
+
+        public static void Swap<T>(this T[] array, int firstIndex, int secondIndex) {
+            var buffer = array[firstIndex];
+            array[firstIndex] = array[secondIndex];
+            array[secondIndex] = buffer;
+        }
     }
 }

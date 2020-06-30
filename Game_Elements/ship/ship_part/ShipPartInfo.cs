@@ -154,7 +154,7 @@ namespace Game_Elements.ship.ship_part {
                 });
             AddShipPart(ShipPartName.Gun5,
                 ShipPartType.Gun,
-                TierName.One,
+                TierName.Two,
                 new Dictionary<ShipClassName, int> {
                     [ShipClassName.Armored] = 3,
                     [ShipClassName.Bomber] = 3,
@@ -168,7 +168,7 @@ namespace Game_Elements.ship.ship_part {
                 });
             AddShipPart(ShipPartName.Gun6,
                 ShipPartType.Gun,
-                TierName.One,
+                TierName.Two,
                 new Dictionary<ShipClassName, int> {
                     [ShipClassName.Technodroid] = 1,
                     [ShipClassName.Saboteur] = 4,
@@ -182,7 +182,7 @@ namespace Game_Elements.ship.ship_part {
                 });
             AddShipPart(ShipPartName.Gun7,
                 ShipPartType.Gun,
-                TierName.One,
+                TierName.Two,
                 new Dictionary<ShipClassName, int> {
                     [ShipClassName.Armored] = 3,
                     [ShipClassName.Saboteur] = 5,
@@ -196,7 +196,7 @@ namespace Game_Elements.ship.ship_part {
                 });
             AddShipPart(ShipPartName.Gun8,
                 ShipPartType.Gun,
-                TierName.One,
+                TierName.Three,
                 new Dictionary<ShipClassName, int> {
                     [ShipClassName.Fighter] = 6,
                     [ShipClassName.Saboteur] = 6,
@@ -210,7 +210,7 @@ namespace Game_Elements.ship.ship_part {
                 });
             AddShipPart(ShipPartName.Gun9,
                 ShipPartType.Gun,
-                TierName.One,
+                TierName.Three,
                 new Dictionary<ShipClassName, int> {
                     [ShipClassName.Bomber] = 1,
                     [ShipClassName.Armored] = 2,
@@ -224,7 +224,7 @@ namespace Game_Elements.ship.ship_part {
                 });
             AddShipPart(ShipPartName.Gun10,
                 ShipPartType.Gun,
-                TierName.One,
+                TierName.Three,
                 new Dictionary<ShipClassName, int> {
                     [ShipClassName.Fighter] = 4,
                     [ShipClassName.Armored] = 4,
@@ -239,7 +239,7 @@ namespace Game_Elements.ship.ship_part {
                 });
             AddShipPart(ShipPartName.Gun11,
                 ShipPartType.Gun,
-                TierName.One,
+                TierName.Four,
                 new Dictionary<ShipClassName, int> {
                     [ShipClassName.Technodroid] = 2,
                     [ShipClassName.Armored] = 2,
@@ -254,7 +254,7 @@ namespace Game_Elements.ship.ship_part {
                 });
             AddShipPart(ShipPartName.Gun12,
                 ShipPartType.Gun,
-                TierName.One,
+                TierName.Four,
                 new Dictionary<ShipClassName, int> {
                     [ShipClassName.Armored] = 1,
                     [ShipClassName.Bomber] = 3,
@@ -269,7 +269,7 @@ namespace Game_Elements.ship.ship_part {
                 });
             AddShipPart(ShipPartName.Gun13,
                 ShipPartType.Gun,
-                TierName.One,
+                TierName.Five,
                 new Dictionary<ShipClassName, int> {
                     [ShipClassName.Fighter] = 5,
                     [ShipClassName.Technodroid] = 5,

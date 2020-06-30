@@ -9,7 +9,7 @@ using Game_Elements.utility;
 
 namespace Game_Elements.fight {
     public class FightShip {
-        public const float ShipRadius = 5;
+        public const float ShipRadius = 7.5f;
         public const float MinDistanceToShip = ShipRadius * 1.5f;
         public Ship Ship { get; }
         public GamePlayer Player { get; }
@@ -29,21 +29,21 @@ namespace Game_Elements.fight {
         public int EnergyRegenPerAttack { get; set; }
         public int Hp { get; set; }
         
-        public Vector2 Position { get; set; }
+        public FloatVector2 Position { get; set; }
         public FightArena Arena { get; }
 
         public float X {
             get => Position.X;
-            set => Position = new Vector2(value, Position.Y);
+            set => Position = new FloatVector2(value, Position.Y);
         }
 
         public float Y {
             get => Position.Y; 
-            set => Position = new Vector2(Position.X, value);
+            set => Position = new FloatVector2(Position.X, value);
         }
         public float RotateAngle { get; set; }
 
-        public FightShip(Ship ship, Vector2 position, FightArena arena, GamePlayer player) {
+        public FightShip(Ship ship, FloatVector2 position, FightArena arena, GamePlayer player) {
             Ship = ship;
             Player = player;
             BusyTicksSpell = 0;
@@ -54,9 +54,9 @@ namespace Game_Elements.fight {
             Position = position;
             Arena = arena;
             RotateAngle = position.Y < FightArena.Height / 2f ? 180 : 0;
-            RotateSpeed = 50;
-            MoveSpeed = 15;
-            AttackRange = 10;
+            RotateSpeed = 80;
+            MoveSpeed = 10;
+            AttackRange = 20;
             Hp = 15;
             AttackSpeed = 3;
             AttackDamage = 1;
@@ -83,12 +83,12 @@ namespace Game_Elements.fight {
             Hp -= damage;
         }
 
-        public bool IsLookAt(Vector2 target) {
+        public bool IsLookAt(FloatVector2 target) {
             return Math.Abs(CalcAngle(target)) < float.Epsilon;
         }
 
-        public List<Vector2> FindPath(Vector2 target) {
-            var path = new List<Vector2>();
+        public List<FloatVector2> FindPath(FloatVector2 target) {
+            var path = new List<FloatVector2>();
             path.Add(target);
             // var pathCompleted = false;
             // var currentPosition = Position;
@@ -98,42 +98,42 @@ namespace Game_Elements.fight {
             return path;
         }
 
-        public float CalcAngle(Vector2 target) {
+        public float CalcAngle(FloatVector2 target) {
             var targetShipPosition = MathEx.RotatePoint(X, Y, target.X, target.Y, MathEx.DegToRad(RotateAngle));
             var a1 = -1;
             var b1 = 0;
             var a2 = targetShipPosition.Y - Y;
             var b2 = X - targetShipPosition.X;
-            var angleRad = MathF.Acos(
+            var angleRad = Math.Acos(
                 (a1 * a2 + b1 * b2) /
-                (MathF.Sqrt(MathF.Pow(a1, 2) + MathF.Pow(b1, 2)) * MathF.Sqrt(MathF.Pow(a2, 2) + MathF.Pow(b2, 2)))
+                (Math.Sqrt(Math.Pow(a1, 2) + Math.Pow(b1, 2)) * Math.Sqrt(Math.Pow(a2, 2) + Math.Pow(b2, 2)))
             );
-            var angleDegree = MathEx.RadToDeg(angleRad);
+            var angleDegree = MathEx.RadToDeg((float) angleRad);
             angleDegree = targetShipPosition.X <= X ? angleDegree : -angleDegree;
-            angleDegree = MathF.Abs(angleDegree) > 0.1 ? angleDegree : 0;
+            angleDegree = Math.Abs(angleDegree) > 0.1 ? angleDegree : 0;
             return angleDegree;
         }
 
         public float CalcDistance(FightShip targetShip) {
-            return Vector2.Distance(Position, targetShip.Position);
+            return FloatVector2.Distance(Position, targetShip.Position);
         }
 
-        public void RotateTo(Vector2 target, in int tickRate) {
+        public void RotateTo(FloatVector2 target, in int tickRate) {
             var angleToTarget = CalcAngle(target);
             var tickRotate = RotateSpeed / tickRate;
-            RotateAngle += MathF.Abs(angleToTarget) > tickRotate ? MathF.Sign(angleToTarget) * tickRotate : angleToTarget;
+            RotateAngle += Math.Abs(angleToTarget) > tickRotate ? Math.Sign(angleToTarget) * tickRotate : angleToTarget;
         }
 
-        public void MoveTo(Vector2 target, in int tickRate) {
-            var newPosition = Vector2Ex.MoveTowards(
+        public void MoveTo(FloatVector2 target, in int tickRate) {
+            var newPosition = FloatVector2.MoveTowards(
                 Position,
                 target,
                 MoveSpeed / tickRate
             );
             foreach (var fightShip in Arena.FightShips.Where(ship => ship != this)) {
-                var distanceToShip = Vector2.Distance(newPosition, fightShip.Position);
-                if (distanceToShip < MinDistanceToShip && Vector2.Distance(Position, target) > Vector2.Distance(fightShip.Position, target)) {
-                    newPosition = Vector2Ex.MoveTowards(
+                var distanceToShip = FloatVector2.Distance(newPosition, fightShip.Position);
+                if (distanceToShip < MinDistanceToShip && FloatVector2.Distance(Position, target) > FloatVector2.Distance(fightShip.Position, target)) {
+                    newPosition = FloatVector2.MoveTowards(
                         newPosition,
                         Position,
                         MinDistanceToShip - distanceToShip
@@ -144,9 +144,9 @@ namespace Game_Elements.fight {
                         target.X, 
                         target.Y, 
                         MathEx.DegToRad(
-                            MathF.Sign(CalcAngle(fightShip.Position)) * 90)
+                            Math.Sign(CalcAngle(fightShip.Position)) * 90)
                         );
-                    newPosition = Vector2Ex.MoveTowards(
+                    newPosition = FloatVector2.MoveTowards(
                         newPosition,
                         newTarget,
                         MinDistanceToShip - distanceToShip

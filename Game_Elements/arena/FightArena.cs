@@ -7,7 +7,7 @@ using Game_Elements.utility;
 
 namespace Game_Elements.arena {
     public class FightArena {
-        public const int YCount = PlayerArena.YCount + 1;
+        public const int YCount = PlayerArena.YCount * 2 + 1;
         public const int XCount = PlayerArena.XCount;
         public const int CellHeight = 10;
         public const int CellWidth = 10;
@@ -28,7 +28,7 @@ namespace Game_Elements.arena {
             var mainPlayerShips = GeneratePlayerFightShips(
                 mainPlayer,
                 (y, x) =>
-                    new Vector2(
+                    new FloatVector2(
                         x * CellWidth + CellWidth / 2,
                         (YCount - PlayerArena.YCount + y) * CellHeight + CellHeight / 2
                     )
@@ -36,7 +36,7 @@ namespace Game_Elements.arena {
             var opponentPlayerShips = GeneratePlayerFightShips(
                 opponentPlayer,
                 (y, x) =>
-                    new Vector2(
+                    new FloatVector2(
                         (PlayerArena.XCount - 1 - x) * CellWidth + CellWidth / 2,
                         (PlayerArena.YCount - 1 - y) * CellHeight + CellHeight / 2
                     )
@@ -46,7 +46,7 @@ namespace Game_Elements.arena {
 
         private List<FightShip> GeneratePlayerFightShips(
             GamePlayer player,
-            Func<int, int, Vector2> positionConversion
+            Func<int, int, FloatVector2> positionConversion
         ) {
             var fightShips = new List<FightShip>();
             var arena = player.PlayerArena.Arena;
@@ -68,11 +68,11 @@ namespace Game_Elements.arena {
         }
 
         public override string ToString() {
-            var result = string.Join(',', FightShips.Select(ship => ship.Hp));
+            var result = string.Join(",", FightShips.Select(ship => ship.Hp));
             for (var y = 0; y < Height; y++) {
                 result += "\n";
                 for (var x = 0; x < Width; x++) {
-                    var foundShip = FightShips.Find(ship => Vector2.Distance(ship.Position, new Vector2(x, y)) < FightShip.ShipRadius / 2);
+                    var foundShip = FightShips.Find(ship => FloatVector2.Distance(ship.Position, new FloatVector2(x, y)) < FightShip.ShipRadius / 2);
                     // var foundShip = FightShips.Find(ship => (int) MathF.Round(ship.Position.X) == x && (int) MathF.Round(ship.Position.Y) == y);
                     if (foundShip != null) {
                         // result += Math.Abs(foundShip.RotateAngle) < 90 ? "↑" : "↓";

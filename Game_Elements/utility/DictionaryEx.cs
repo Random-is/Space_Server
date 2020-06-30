@@ -8,11 +8,11 @@ namespace Game_Elements.utility {
             Dictionary<TKey, int> dictionaryToConcat
         ) {
             var result = new Dictionary<TKey, int>(baseDictionary);
-            foreach (var (key, value) in dictionaryToConcat) {
-                if (result.ContainsKey(key)) {
-                    result[key] += value;
+            foreach (var element in dictionaryToConcat) {
+                if (result.ContainsKey(element.Key)) {
+                    result[element.Key] += element.Value;
                 } else {
-                    result[key] = value;
+                    result[element.Key] = element.Value;
                 }
             }
             return result;
@@ -22,11 +22,11 @@ namespace Game_Elements.utility {
             this Dictionary<TKey, int> baseDictionary,
             Dictionary<TKey, int> dictionaryToAppend
         ) {
-            foreach (var (key, value) in dictionaryToAppend) {
-                if (baseDictionary.ContainsKey(key)) {
-                    baseDictionary[key] += value;
+            foreach (var element in dictionaryToAppend) {
+                if (baseDictionary.ContainsKey(element.Key)) {
+                    baseDictionary[element.Key] += element.Value;
                 } else {
-                    baseDictionary[key] = value;
+                    baseDictionary[element.Key] = element.Value;
                 }
             }
         }
@@ -36,11 +36,11 @@ namespace Game_Elements.utility {
             Dictionary<TKey, float> dictionaryToConcat
         ) {
             var result = new Dictionary<TKey, float>(baseDictionary);
-            foreach (var (key, value) in dictionaryToConcat) {
-                if (result.ContainsKey(key)) {
-                    result[key] += value;
+            foreach (var element in dictionaryToConcat) {
+                if (result.ContainsKey(element.Key)) {
+                    result[element.Key] += element.Value;
                 } else {
-                    result[key] = value;
+                    result[element.Key] = element.Value;
                 }
             }
             return result;
@@ -50,11 +50,11 @@ namespace Game_Elements.utility {
             this Dictionary<TKey, float> baseDictionary,
             Dictionary<TKey, float> dictionaryToAppend
         ) {
-            foreach (var (key, value) in dictionaryToAppend) {
-                if (baseDictionary.ContainsKey(key)) {
-                    baseDictionary[key] += value;
+            foreach (var element in dictionaryToAppend) {
+                if (baseDictionary.ContainsKey(element.Key)) {
+                    baseDictionary[element.Key] += element.Value;
                 } else {
-                    baseDictionary[key] = value;
+                    baseDictionary[element.Key] = element.Value;
                 }
             }
         }

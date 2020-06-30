@@ -7,16 +7,19 @@ using Game_Elements.ship.ship_part;
 using Game_Elements.utility;
 
 namespace Game_Elements {
-    public class GamePlayer {
+    public class GamePlayer : IGamePlayer {
         public string Nickname { get; set; }
         public int Hp { get; set; }
         public int Money { get; set; }
         public int Xp { get; set; }
-        public int Level { get; set; }
+        public int Lvl { get; set; }
         public List<Ship> Ships { get; set; }
         public ShipPart[] Bag { get; set; }
         public PlayerArena PlayerArena { get; set; }
         public ShipPart[] Shop { get; set; }
+
+        public const int BaseXp = 2;
+        public const int MaxLvl = 5;
 
         public void Set(
             int hp,
@@ -31,7 +34,7 @@ namespace Game_Elements {
             Hp = hp;
             Money = money;
             Xp = xp;
-            Level = level;
+            Lvl = level;
             Ships = spaceShips;
             Bag = boughtComponents;
             PlayerArena = arena;
@@ -44,15 +47,31 @@ namespace Game_Elements {
             );
         }
 
-        public IntVector2 AddShip(ShipHullName shipHullName) {
-            var newShip = new Ship(ShipHullInfo.All[shipHullName]);
-            Ships.Add(newShip);
-            var coordinates = PlayerArena.AddShip(newShip);
+        public void AddShipToPosition(Ship ship, IntVector2 position) {
+            Ships.Add(ship);
+            PlayerArena.AddShipToPosition(ship, position);
+        }
+
+        public void SetMoney(int money) {
+            Money = money;
+        }
+
+        public IntVector2 AddShipToFreePosition(Ship ship) {
+            Ships.Add(ship);
+            var coordinates = PlayerArena.AddShipToFreePosition(ship);
             return coordinates;
+        }
+
+        public void SetHp(int hp) {
+            Hp = hp;
         }
 
         public void ChangeMoney(int money) {
             Money += money;
+        }
+
+        public void SetXp(int xp) {
+            Xp = xp;
         }
 
         public void ChangeHp(int hp) {
@@ -60,19 +79,26 @@ namespace Game_Elements {
         }
 
         public void AddXp(int xp) {
-            if (Level < 5) {
+            if (Lvl < MaxLvl) {
                 Xp += xp;
-                if (Xp >= 12) {
+                if (Xp >= Lvl + BaseXp) {
                     Xp = 0;
-                    Level += 1;
+                    Lvl += 1;
                 }
             }
         }
 
-        public ShipPart AddShipPartToShip(Ship ship, int bagIndex) {
+        public ShipPart AddShipPartToShipAndSell(Ship ship, int bagIndex) {
             var shipPart = Bag[bagIndex];
-            Bag[bagIndex] = null;
-            return ship.ChangeComponent(shipPart);
+            var oldShipPart = ship.ChangeComponent(shipPart);
+            if (oldShipPart != null) {
+                ChangeMoney(TierInfo.Get(oldShipPart.TierName).Cost);
+            }
+            return shipPart;
+        }
+
+        public void SetShop(ShipPart[] shop) {
+            Shop = shop;
         }
 
         public bool IsNewLvl() => Xp == 0;
@@ -81,7 +107,7 @@ namespace Game_Elements {
             return PlayerArena.ShipReposition(ship, newY, newX);
         }
 
-        public bool CanBuyComponent(int shopIndex) {
+        public bool CanBuyShipPart(int shopIndex) {
             //todo T2 GUNS checking
             var hasShopItem = Shop[shopIndex] != null;
             if (hasShopItem) {
@@ -94,18 +120,25 @@ namespace Game_Elements {
             return false;
         }
 
-        public ShipPart BuyComponent(int shopItemIndex) {
+        public ShipPart BuyShipPart(int shopItemIndex) {
             var shipPart = Shop[shopItemIndex];
             ChangeMoney(-TierInfo.Get(shipPart.TierName).Cost);
             Shop[shopItemIndex] = null;
             return shipPart;
         }
 
-        public int AddBagComponent(ShipPart shipPart) {
+        public int AddBagItem(ShipPart shipPart) {
             //todo MAKE T2 Guns
             var bagFreeSpaceIndex = Array.IndexOf(Bag, null);
             Bag[bagFreeSpaceIndex] = shipPart;
             return bagFreeSpaceIndex;
+        }
+
+        public ShipPart SellBagItem(int bagIndex) {
+            var shipPart = Bag[bagIndex];
+            Bag[bagIndex] = null;
+            ChangeMoney(TierInfo.Get(shipPart.TierName).Cost);
+            return shipPart;
         }
 
         public ShipPart BagItemReposition(int oldItemIndex, int newItemIndex) {

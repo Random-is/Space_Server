@@ -23,7 +23,7 @@ namespace Game_Elements {
         public TierName[] GetRollTiers(GamePlayer player, Random random) {
             var shopLength = player.Shop.Length;
             var resultTiers = new TierName[shopLength];
-            var tierChances = TierInfo.GetChances(player.Level);
+            var tierChances = TierInfo.GetChances(player.Lvl);
             for (var i = 0; i < shopLength; i++) {
                 var randomNum = random.Next(1, 101);
                 var temp = 0;

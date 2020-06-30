@@ -39,16 +39,16 @@ namespace Space_Client.model {
                     while (true) {
                         var message = binaryReader.ReadString();
                         Console.WriteLine(message);
-                        if (message == "QUEUE_FOUND")
-                            binaryWriter.Write("QUEUE_ACCEPT");
-                        else if (message == "ROOM_CREATED") binaryWriter.Write("ROOM_LOADED");
+                        // if (message == "QUEUE_FOUND" && nickname == "1")
+                        //     binaryWriter.Write("QUEUE_ACCEPT");
+                        // else if (message == "ROOM_CREATED") binaryWriter.Write("ROOM_LOADED");
                     }
                 });
                 listenMessageThread.Start();
-                // while (true) {
-                //     Console.ReadLine();
-                //     binaryWriter.Write("GAME_SHOP_ROLL");
-                // }
+                while (true) {
+                    Console.ReadLine();
+                    binaryWriter.Write("QUEUE_ACCEPT");
+                }
             // });
             // t.Start();
 

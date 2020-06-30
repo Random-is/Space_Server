@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
-using System.Runtime.Intrinsics.X86;
 using Game_Elements.ship;
 using Game_Elements.utility;
 using Game_Elements.arena;
@@ -24,7 +23,8 @@ namespace Game_Elements.fight {
             Action<FightShip, FightArena, int> moveAction = null,
             Action<FightShip, FightArena, int> rotateAction = null,
             Action<FightShip, FightArena, int> attackAction = null,
-            Action<FightShip, ShipPartSpell, FightArena, int> spellStartCastAction = null
+            Action<FightShip, ShipPartSpell, FightArena, int> spellStartCastAction = null,
+            Action<FightArena, int> afterTickAction = null
         ) {
         const int tickRate = 30;
         var fightShips = arena.FightShips;
@@ -124,6 +124,7 @@ namespace Game_Elements.fight {
                     currentShip.BusyTicksAttack--;
                 }
             }
+            afterTickAction?.Invoke(arena, tickRate);
         }
         return new FightResult {
             Winner = arena.MainPlayer,
