@@ -367,8 +367,8 @@ namespace Space_Server.game {
         private void AddCommandShipReposition(NetworkClient client) {
             client.AddCommand(CommandType.GAME, "GAME_CHANGE_SHIP_POS", args => {
                 var shipIndex = int.Parse(args[0]);
-                var newX = int.Parse(args[1]);
-                var newY = int.Parse(args[2]);
+                var newY = int.Parse(args[1]);
+                var newX = int.Parse(args[2]);
                 var player = client.GamePlayer;
                 var targetShip = player.ShipReposition(player.Ships[shipIndex], newY, newX);
                 SendShipReposition(client, shipIndex, newY, newX);
