@@ -340,10 +340,12 @@ namespace Space_Server.game {
                 var player = client.GamePlayer;
                 if (player.Money >= LvlUpCost) {
                     player.AddXp(1);
+                    player.ChangeMoney(-5);
                     if (player.IsNewLvl())
                         SendLvlUp(client);
                     else
                         SendXp(client);
+                    SendMoney(client);
                 }
             });
         }
