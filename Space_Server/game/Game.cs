@@ -78,7 +78,7 @@ namespace Space_Server.game {
                 SendOpponent(client);
             }
 
-            const int buySeconds = 15;
+            const int buySeconds = 30;
             for (var currentSecond = 0; currentSecond < buySeconds; currentSecond++) {
                 var timeLeft = buySeconds - currentSecond;
                 if (currentSecond % buySeconds / 3 == 0) {
@@ -87,7 +87,7 @@ namespace Space_Server.game {
                 Thread.Sleep(1000);
             }
 
-            const int positioningSeconds = 15;
+            const int positioningSeconds = 10;
             foreach (var client in AliveClients) {
                 RemoveCommandLvlUp(client);
                 RemoveCommandShopBuy(client);
