@@ -66,7 +66,9 @@ namespace Space_Server.game {
                 AddCommandShopRoll(client);
                 AddCommandBuyShip(client);
                 AddCommandShipReposition(client);
-                AddCommandAddShipComponent(client);
+                AddCommandAddShipPart(client);
+                AddCommandShopLock(client);
+                AddCommandBagItemReposition(client);
                 SendPhaseBuying(client);
                 SendXp(client);
                 if (client.GamePlayer.IsNewLvl())
@@ -91,7 +93,9 @@ namespace Space_Server.game {
                 RemoveCommandShopBuy(client);
                 RemoveCommandShopRoll(client);
                 RemoveCommandBuyShip(client);
-                RemoveCommandAddShipComponent(client);
+                RemoveCommandAddShipPart(client);
+                RemoveCommandShopLock(client);
+                RemoveCommandBagItemReposition(client);
                 SendPhasePositioning(client);
             }
             for (var currentSecond = 0; currentSecond < positioningSeconds; currentSecond++) {
@@ -426,7 +430,7 @@ namespace Space_Server.game {
 
 
 
-        private void AddCommandAddShipComponent(NetworkClient client) {
+        private void AddCommandAddShipPart(NetworkClient client) {
             client.AddCommand(CommandType.GAME, "GAME_ADD_SHIP_PART", args => {
                 var shipIndex = int.Parse(args[0]);
                 var bagIndex = int.Parse(args[1]);
@@ -439,7 +443,7 @@ namespace Space_Server.game {
             });
         }
 
-        private void RemoveCommandAddShipComponent(NetworkClient client) {
+        private void RemoveCommandAddShipPart(NetworkClient client) {
             client.RemoveCommand(CommandType.GAME, "GAME_ADD_SHIP_COMPONENT");
         }
     }
