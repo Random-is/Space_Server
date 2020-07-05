@@ -17,7 +17,7 @@ namespace Space_Server {
     internal static class Program {
         public static void Main(string[] args) {
             Console.OutputEncoding = System.Text.Encoding.UTF8;
-            
+
             Log.Print($"Process x64 {Environment.Is64BitProcess}");
             var server = new Server(4444);
             server.InitAndStart();

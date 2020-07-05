@@ -51,11 +51,13 @@ namespace Space_Server.game {
         }
 
         private void PlayRound(int round) {
+            //TODO Баг с тем что оне удаляется GamePlayer при смерти
             PvpFights = GenerateFights(AliveClients);
             foreach (var gamePlayer in GamePlayers) {
                 gamePlayer.AddXp(1);
                 gamePlayer.ChangeMoney(5);
-                RollShop(gamePlayer);
+                if (!gamePlayer.ShopLock)
+                    RollShop(gamePlayer);
             }
             foreach (var client in AliveClients) {
                 SendRound(client, round);
@@ -77,7 +79,9 @@ namespace Space_Server.game {
             const int buySeconds = 15;
             for (var currentSecond = 0; currentSecond < buySeconds; currentSecond++) {
                 var timeLeft = buySeconds - currentSecond;
-                AliveClients.ForEach(client => SendTime(client, timeLeft));
+                if (currentSecond % buySeconds / 3 == 0) {
+                    AliveClients.ForEach(client => SendTime(client, timeLeft));
+                }
                 Thread.Sleep(1000);
             }
 
@@ -92,7 +96,9 @@ namespace Space_Server.game {
             }
             for (var currentSecond = 0; currentSecond < positioningSeconds; currentSecond++) {
                 var timeLeft = positioningSeconds - currentSecond;
-                AliveClients.ForEach(client => SendTime(client, timeLeft));
+                if (currentSecond % positioningSeconds / 3 == 0) {
+                    AliveClients.ForEach(client => SendTime(client, timeLeft));
+                }
                 Thread.Sleep(1000);
             }
 
@@ -345,7 +351,7 @@ namespace Space_Server.game {
         private void AddCommandBuyShip(NetworkClient client) {
             client.AddCommand(CommandType.GAME, "GAME_BUY_SHIP", args => {
                 var player = client.GamePlayer;
-                if (player.Ships.Count < player.Lvl) {
+                if (player.Ships.Count < player.Lvl + 1) {
                     var hullType = (ShipHullName) int.Parse(args[0]);
                     var newShip = new Ship(ShipHullInfo.All[hullType]);
                     var coordinates = player.AddShipToFreePosition(newShip);
@@ -364,19 +370,73 @@ namespace Space_Server.game {
                 var newX = int.Parse(args[1]);
                 var newY = int.Parse(args[2]);
                 var player = client.GamePlayer;
-                if (player.PlayerArena.Arena[newX, newY] == null) {
-                    player.ShipReposition(player.Ships[shipIndex], newY, newX);
-                    SendShipReposition(client, shipIndex, newY, newX);
-                }
+                var targetShip = player.ShipReposition(player.Ships[shipIndex], newY, newX);
+                SendShipReposition(client, shipIndex, newY, newX);
+                // if (targetShip != null) {
+                //     SendShipReposition(client, player.Ships.IndexOf(targetShip), newY, newX);
+                // }
             });
         }
 
         private void RemoveCommandShipReposition(NetworkClient client) {
             client.RemoveCommand(CommandType.GAME, "GAME_CHANGE_SHIP_POS");
         }
+        
+        private void AddCommandBagItemReposition(NetworkClient client) {
+            client.AddCommand(CommandType.GAME, "GAME_CHANGE_BAG_ITEM_POS", args => {
+                var oldX = int.Parse(args[0]);
+                var newX = int.Parse(args[1]);
+                var player = client.GamePlayer;
+                player.BagItemReposition(oldX, newX);
+                SendBagItemReposition(client, oldX, newX);
+            });
+        }
+
+        private void SendBagItemReposition(NetworkClient client, in int oldX, in int newX) {
+            SendToClient(client, $"GAME_CHANGE_BAG_ITEM_POS:{oldX} {newX}");
+        }
+
+        private void RemoveCommandBagItemReposition(NetworkClient client) {
+            client.RemoveCommand(CommandType.GAME, "GAME_CHANGE_BAG_ITEM_POS");
+        }
+        
+        private void AddCommandShopLock(NetworkClient client) {
+            client.AddCommand(CommandType.GAME, "GAME_SHOP_LOCK", args => {
+                var player = client.GamePlayer;
+                player.ShopLock = !player.ShopLock;
+                if (player.ShopLock) {
+                    SendShopLock(client);
+                } else {
+                    SendShopUnlock(client);
+                }
+            });
+        }
+        
+        private void RemoveCommandShopLock(NetworkClient client) {
+            client.RemoveCommand(CommandType.GAME, "GAME_SHOP_LOCK");
+        }
+        
+        private void SendShopLock(NetworkClient client) {
+            SendToClient(client, $"GAME_SHOP_LOCK:");
+        }
+        
+        private void SendShopUnlock(NetworkClient client) {
+            SendToClient(client, $"GAME_SHOP_UNLOCK:");
+        }
+
+
 
         private void AddCommandAddShipComponent(NetworkClient client) {
-            client.AddCommand(CommandType.GAME, "GAME_ADD_SHIP_COMPONENT", args => { });
+            client.AddCommand(CommandType.GAME, "GAME_ADD_SHIP_PART", args => {
+                var shipIndex = int.Parse(args[0]);
+                var bagIndex = int.Parse(args[1]);
+                var player = client.GamePlayer;
+                if (player.Bag[bagIndex] != null && shipIndex <= player.Ships.Count) {
+                    player.AddShipPartToShipAndSell(player.Ships[shipIndex], bagIndex);
+                    SendAddPartToShip(client, shipIndex, bagIndex);
+                    SendMoney(client);
+                }
+            });
         }
 
         private void RemoveCommandAddShipComponent(NetworkClient client) {

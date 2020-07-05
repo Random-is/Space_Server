@@ -17,6 +17,8 @@ namespace Game_Elements {
         public ShipPart[] Bag { get; set; }
         public PlayerArena PlayerArena { get; set; }
         public ShipPart[] Shop { get; set; }
+        
+        public bool ShopLock { get; set; }
 
         public const int BaseXp = 2;
         public const int MaxLvl = 5;
@@ -29,7 +31,8 @@ namespace Game_Elements {
             List<Ship> spaceShips,
             ShipPart[] boughtComponents,
             PlayerArena arena,
-            ShipPart[] shop
+            ShipPart[] shop,
+            bool shopLock
         ) {
             Hp = hp;
             Money = money;
@@ -43,7 +46,7 @@ namespace Game_Elements {
 
         public void Reset() {
             Set(100, 4, 0, 1, new List<Ship>(),
-                new ShipPart[8], new PlayerArena(), new ShipPart[5]
+                new ShipPart[8], new PlayerArena(), new ShipPart[5], false
             );
         }
 
@@ -90,6 +93,7 @@ namespace Game_Elements {
 
         public ShipPart AddShipPartToShipAndSell(Ship ship, int bagIndex) {
             var shipPart = Bag[bagIndex];
+            Bag[bagIndex] = null;
             var oldShipPart = ship.ChangeComponent(shipPart);
             if (oldShipPart != null) {
                 ChangeMoney(TierInfo.Get(oldShipPart.TierName).Cost);
