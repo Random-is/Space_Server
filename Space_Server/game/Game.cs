@@ -78,7 +78,7 @@ namespace Space_Server.game {
                 SendOpponent(client);
             }
 
-            const int buySeconds = 30;
+            const int buySeconds = 40;
             for (var currentSecond = 0; currentSecond < buySeconds; currentSecond++) {
                 var timeLeft = buySeconds - currentSecond;
                 if (currentSecond % buySeconds / 3 == 0) {
