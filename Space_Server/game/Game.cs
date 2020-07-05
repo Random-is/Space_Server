@@ -240,7 +240,7 @@ namespace Space_Server.game {
         }
         
         private void SendAddShip(NetworkClient client, ShipHullName shipHullName, int newY, int newX) {
-            var message = $"GAME_ADD_SHIP:{shipHullName} {newY} {newX}";
+            var message = $"GAME_ADD_SHIP:{(int) shipHullName} {newY} {newX}";
             client.TcpSend(message);
         }
 
