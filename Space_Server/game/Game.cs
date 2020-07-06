@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Threading;
 using System.Threading.Tasks;
 using Game_Elements;
@@ -61,6 +62,7 @@ namespace Space_Server.game {
             }
             foreach (var client in AliveClients) {
                 SendRound(client, round);
+                SendGamePlayersHp(client);
                 AddCommandLvlUp(client);
                 AddCommandShopBuy(client);
                 AddCommandShopRoll(client);
@@ -114,7 +116,8 @@ namespace Space_Server.game {
             var fightRandomSeed = _random.Next();
             var fightTasks = new List<Task<FightResult>>();
             foreach (var pvpFight in PvpFights) {
-                var fightTask = new Task<FightResult>(() => Fight.CalcWinner(pvpFight.PvpArena, fightDurationSeconds, new Random(fightRandomSeed)));
+                var fightTask = new Task<FightResult>(() =>
+                    Fight.CalcWinner(pvpFight.PvpArena, fightDurationSeconds, new Random(fightRandomSeed)));
                 fightTasks.Add(fightTask);
                 fightTask.Start();
             }
@@ -137,6 +140,13 @@ namespace Space_Server.game {
                     SendHp(winnerClient);
                 }
             }
+        }
+
+        private void SendGamePlayersHp(NetworkClient client) {
+            SendToClient(
+                client,
+                $"GAME_PLAYERS_HP_UPDATE:{string.Join(' ', GamePlayers.Select(player => player.Hp))}"
+            );
         }
 
         private void SendStartFight(NetworkClient client, int fightRandomSeed) {
@@ -242,7 +252,7 @@ namespace Space_Server.game {
             message = message.Remove(message.Length - 1);
             client.TcpSend(message);
         }
-        
+
         private void SendAddShip(NetworkClient client, ShipHullName shipHullName, int newY, int newX) {
             var message = $"GAME_ADD_SHIP:{(int) shipHullName} {newY} {newX}";
             client.TcpSend(message);
@@ -257,7 +267,7 @@ namespace Space_Server.game {
             var message = $"GAME_ROUND_UPDATE:{round}";
             client.TcpSend(message);
         }
-        
+
         private void SendMoney(NetworkClient client) {
             var message = $"GAME_MONEY_UPDATE:{client.GamePlayer.Money}";
             client.TcpSend(message);
@@ -267,27 +277,27 @@ namespace Space_Server.game {
             var message = $"GAME_HP_UPDATE:{client.GamePlayer.Hp}";
             client.TcpSend(message);
         }
-        
+
         private void SendXp(NetworkClient client) {
             var message = $"GAME_XP_UPDATE:{client.GamePlayer.Xp}";
             client.TcpSend(message);
         }
-        
+
         private void SendLvlUp(NetworkClient client) {
             var message = $"GAME_LVL_UP:{client.GamePlayer.Lvl}";
             client.TcpSend(message);
         }
-        
+
         private void SendShipReposition(NetworkClient client, int shipIndex, int newY, int newX) {
             var message = $"GAME_SHIP_REPOSITION:{shipIndex} {newY} {newX}";
             client.TcpSend(message);
         }
-        
+
         private void SendBuyComponent(NetworkClient client, int shopIndex) {
             var message = $"GAME_SHOP_BUY:{shopIndex}";
             client.TcpSend(message);
         }
-        
+
         private void SendAddBagComponent(NetworkClient client, ShipPart shipPart) {
             var message = $"GAME_ADD_BAG_ITEM:{(int) shipPart.Name}";
             client.TcpSend(message);
@@ -387,7 +397,7 @@ namespace Space_Server.game {
         private void RemoveCommandShipReposition(NetworkClient client) {
             client.RemoveCommand(CommandType.GAME, "GAME_CHANGE_SHIP_POS");
         }
-        
+
         private void AddCommandBagItemReposition(NetworkClient client) {
             client.AddCommand(CommandType.GAME, "GAME_CHANGE_BAG_ITEM_POS", args => {
                 var oldX = int.Parse(args[0]);
@@ -405,7 +415,7 @@ namespace Space_Server.game {
         private void RemoveCommandBagItemReposition(NetworkClient client) {
             client.RemoveCommand(CommandType.GAME, "GAME_CHANGE_BAG_ITEM_POS");
         }
-        
+
         private void AddCommandShopLock(NetworkClient client) {
             client.AddCommand(CommandType.GAME, "GAME_SHOP_LOCK", args => {
                 var player = client.GamePlayer;
@@ -417,19 +427,18 @@ namespace Space_Server.game {
                 }
             });
         }
-        
+
         private void RemoveCommandShopLock(NetworkClient client) {
             client.RemoveCommand(CommandType.GAME, "GAME_SHOP_LOCK");
         }
-        
+
         private void SendShopLock(NetworkClient client) {
             SendToClient(client, $"GAME_SHOP_LOCK:");
         }
-        
+
         private void SendShopUnlock(NetworkClient client) {
             SendToClient(client, $"GAME_SHOP_UNLOCK:");
         }
-
 
 
         private void AddCommandAddShipPart(NetworkClient client) {
