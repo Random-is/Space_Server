@@ -64,7 +64,6 @@ namespace Space_Server.game {
             foreach (var client in AliveClients) {
                 SendRound(client, round);
                 SendGamePlayersHp(client);
-                SendOpponent(client);
                 SendXp(client);
                 if (client.GamePlayer.IsNewLvl())
                     SendLvlUp(client);
@@ -79,6 +78,7 @@ namespace Space_Server.game {
                 AddCommandShopLock(client);
                 AddCommandBagItemReposition(client);
                 SendPhaseBuying(client);
+                SendOpponent(client);
             }
 
             const int buySeconds = 40;
@@ -271,7 +271,7 @@ namespace Space_Server.game {
         private void SendShop(NetworkClient client) {
             var message = "GAME_SHOP_UPDATE:";
             foreach (var componentType in client.GamePlayer.Shop) {
-                message = message + $"{(int) componentType.Name} ";
+                message = message + $"{(componentType != null ? (int) componentType.Name : -1)} ";
             }
             message = message.Remove(message.Length - 1);
             client.TcpSend(message);
