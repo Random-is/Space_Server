@@ -19,7 +19,7 @@ namespace Space_Server.game {
         private Random _random;
         private readonly object _shopLocker = new object();
         private const int RollCost = 2;
-        private const int LvlUpCost = 4;
+        private const int LvlUpCost = 5;
         public ConcurrentList<NetworkClient> AllClients { get; }
         public ConcurrentList<NetworkClient> AliveClients { get; }
         public ConcurrentDictionary<NetworkClient, NetworkClient> LastOpponents { get; set; }
@@ -133,12 +133,12 @@ namespace Space_Server.game {
             foreach (var fightTask in fightTasks) {
                 fightTask.Wait();
                 var loserClient = AliveClients.Find(client => client.GamePlayer == fightTask.Result.Loser);
-                loserClient.GamePlayer.ChangeHp(fightTask.Result.Damage);
-                SendHp(loserClient);
+                loserClient?.GamePlayer.ChangeHp(fightTask.Result.Damage);
+                // SendHp(loserClient);
                 if (fightTask.Result.Tie) {
                     var winnerClient = AliveClients.Find(client => client.GamePlayer == fightTask.Result.Winner);
-                    winnerClient.GamePlayer.ChangeHp(fightTask.Result.Damage);
-                    SendHp(winnerClient);
+                    winnerClient?.GamePlayer.ChangeHp(fightTask.Result.Damage);
+                    // SendHp(winnerClient);
                 }
             }
         }
