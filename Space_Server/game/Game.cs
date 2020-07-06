@@ -168,6 +168,8 @@ namespace Space_Server.game {
                     $"{(opponentShip.Parts[ShipPartType.Gun] != null ? (int) opponentShip.Parts[ShipPartType.Gun].Name : -1)} " +
                     $"{(opponentShip.Parts[ShipPartType.Reactor] != null ? (int) opponentShip.Parts[ShipPartType.Reactor].Name : -1)} " +
                     $"{(opponentShip.Parts[ShipPartType.Facing] != null ? (int) opponentShip.Parts[ShipPartType.Facing].Name : -1)} ";
+                var position = opponent.PlayerArena.Arena.CoordinatesOf(opponentShip);
+                opponentShipsInfo += $"{position.Y} {position.X} ";
             }
             SendToClient(
                 client,
