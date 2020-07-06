@@ -6,6 +6,7 @@ using System.Numerics;
 using System.Threading;
 using System.Threading.Tasks;
 using Game_Elements;
+using Game_Elements.arena;
 using Game_Elements.fight;
 using Game_Elements.ship;
 using Game_Elements.ship.ship_part;
@@ -63,6 +64,12 @@ namespace Space_Server.game {
             foreach (var client in AliveClients) {
                 SendRound(client, round);
                 SendGamePlayersHp(client);
+                SendOpponent(client);
+                SendXp(client);
+                if (client.GamePlayer.IsNewLvl())
+                    SendLvlUp(client);
+                SendMoney(client);
+                SendShop(client);
                 AddCommandLvlUp(client);
                 AddCommandShopBuy(client);
                 AddCommandShopRoll(client);
@@ -72,18 +79,12 @@ namespace Space_Server.game {
                 AddCommandShopLock(client);
                 AddCommandBagItemReposition(client);
                 SendPhaseBuying(client);
-                SendXp(client);
-                if (client.GamePlayer.IsNewLvl())
-                    SendLvlUp(client);
-                SendMoney(client);
-                SendShop(client);
-                SendOpponent(client);
             }
 
             const int buySeconds = 40;
             for (var currentSecond = 0; currentSecond < buySeconds; currentSecond++) {
                 var timeLeft = buySeconds - currentSecond;
-                if (currentSecond % buySeconds / 3 == 0) {
+                if (currentSecond % (buySeconds / 3) == 0) {
                     AliveClients.ForEach(client => SendTime(client, timeLeft));
                 }
                 Thread.Sleep(1000);
@@ -102,7 +103,7 @@ namespace Space_Server.game {
             }
             for (var currentSecond = 0; currentSecond < positioningSeconds; currentSecond++) {
                 var timeLeft = positioningSeconds - currentSecond;
-                if (currentSecond % positioningSeconds / 3 == 0) {
+                if (currentSecond % (positioningSeconds / 3) == 0) {
                     AliveClients.ForEach(client => SendTime(client, timeLeft));
                 }
                 Thread.Sleep(1000);
@@ -150,7 +151,28 @@ namespace Space_Server.game {
         }
 
         private void SendStartFight(NetworkClient client, int fightRandomSeed) {
-            SendToClient(client, $"GAME_START_FIGHT:{fightRandomSeed}");
+            var pvpFight = PvpFights.Find(fight => fight.MainPlayer == client || fight.OpponentPlayer == client);
+            var playerIndex = -1;
+            GamePlayer opponent;
+            if (pvpFight.MainPlayer == client) {
+                opponent = pvpFight.OpponentPlayer.GamePlayer;
+                playerIndex = 0;
+            } else {
+                opponent = pvpFight.MainPlayer.GamePlayer;
+                playerIndex = 1;
+            }
+            var opponentShipsInfo = "";
+            foreach (var opponentShip in opponent.Ships) {
+                opponentShipsInfo +=
+                    $"{(int) opponentShip.Hull.Name} " +
+                    $"{(opponentShip.Parts[ShipPartType.Gun] != null ? (int) opponentShip.Parts[ShipPartType.Gun].Name : -1)} " +
+                    $"{(opponentShip.Parts[ShipPartType.Reactor] != null ? (int) opponentShip.Parts[ShipPartType.Reactor].Name : -1)} " +
+                    $"{(opponentShip.Parts[ShipPartType.Facing] != null ? (int) opponentShip.Parts[ShipPartType.Facing].Name : -1)} ";
+            }
+            SendToClient(
+                client,
+                $"GAME_START_FIGHT:{fightRandomSeed} {playerIndex} {opponent.Ships.Count} {opponentShipsInfo}"
+            );
         }
 
         private void SendPhaseBuying(NetworkClient client) {
