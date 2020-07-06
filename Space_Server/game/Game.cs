@@ -77,6 +77,7 @@ namespace Space_Server.game {
                 AddCommandAddShipPart(client);
                 AddCommandShopLock(client);
                 AddCommandBagItemReposition(client);
+                AddCommandSellBagItem(client);
                 SendPhaseBuying(client);
                 SendOpponent(client);
             }
@@ -99,6 +100,7 @@ namespace Space_Server.game {
                 RemoveCommandAddShipPart(client);
                 RemoveCommandShopLock(client);
                 RemoveCommandBagItemReposition(client);
+                RemoveCommandSellBagItem(client);
                 SendPhasePositioning(client);
             }
             for (var currentSecond = 0; currentSecond < positioningSeconds; currentSecond++) {
@@ -133,11 +135,11 @@ namespace Space_Server.game {
             foreach (var fightTask in fightTasks) {
                 fightTask.Wait();
                 var loserClient = AliveClients.Find(client => client.GamePlayer == fightTask.Result.Loser);
-                loserClient?.GamePlayer.ChangeHp(fightTask.Result.Damage);
+                loserClient?.GamePlayer.ChangeHp(-fightTask.Result.Damage);
                 // SendHp(loserClient);
                 if (fightTask.Result.Tie) {
                     var winnerClient = AliveClients.Find(client => client.GamePlayer == fightTask.Result.Winner);
-                    winnerClient?.GamePlayer.ChangeHp(fightTask.Result.Damage);
+                    winnerClient?.GamePlayer.ChangeHp(-fightTask.Result.Damage);
                     // SendHp(winnerClient);
                 }
             }
@@ -346,6 +348,26 @@ namespace Space_Server.game {
                     SendShop(client);
                 }
             });
+        }
+        
+        private void AddCommandSellBagItem(NetworkClient client) {
+            client.AddCommand(CommandType.GAME, "GAME_SELL_BAG_ITEM", args => {
+                var bagIndex = int.Parse(args[0]);
+                var player = client.GamePlayer;
+                if (player.Bag[bagIndex] != null) {
+                    client.GamePlayer.SellBagItem(bagIndex);
+                    SendSellBagItem(client, bagIndex);
+                    SendMoney(client);
+                }
+            });
+        }
+
+        private void SendSellBagItem(NetworkClient client, int bagIndex) {
+            SendToClient(client, $"GAME_SELL_BAG_ITEM:{bagIndex}");
+        }
+
+        private void RemoveCommandSellBagItem(NetworkClient client) {
+            client.RemoveCommand(CommandType.GAME, "GAME_SELL_BAG_ITEM");
         }
 
         private void AddCommandShopBuy(NetworkClient client) {
