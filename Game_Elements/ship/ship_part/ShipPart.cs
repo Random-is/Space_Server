@@ -28,7 +28,7 @@ namespace Game_Elements.ship.ship_part {
         Facing3,
         Rector1,
         Rector2,
-        Rector3
+        Rector3,
     }
 
     public class ShipPart {
@@ -43,6 +43,7 @@ namespace Game_Elements.ship.ship_part {
         public ShipPart(
             ShipPartName name,
             ShipPartType type,
+            int rank,
             TierName tierName,
             Dictionary<ShipClassName, int> classes,
             ShipPartSpell spell,
@@ -50,11 +51,14 @@ namespace Game_Elements.ship.ship_part {
         ) {
             Name = name;
             Type = type;
+            Rank = rank;
             TierName = tierName;
             Classes = classes;
             Spell = spell;
             Parameters = parameters;
         }
+
+        public int Rank { get; set; }
 
         public override string ToString() {
             return Name.ToString();

@@ -46,6 +46,7 @@ namespace Space_Server.server {
         }
 
         private void InitPlayer(TcpClient client, EndPoint clientEndPoint, string nickname) {
+            client.NoDelay = true;
             var gamePlayer = new GamePlayer();
             var networkClient = new NetworkClient(gamePlayer);
             networkClient.GenerateStreams(client);

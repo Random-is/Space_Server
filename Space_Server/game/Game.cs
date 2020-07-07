@@ -45,7 +45,7 @@ namespace Space_Server.game {
             LastOpponents = new ConcurrentDictionary<NetworkClient, NetworkClient>();
             GamePlayers = new ConcurrentList<GamePlayer>();
             Pool = new PartsPool<ConcurrentList<ShipPart>>();
-            Pool.Generate(ShipPartInfo.All.Values, _random);
+            Pool.Generate(ShipPartInfo.BaseRank.Values, _random);
             foreach (var client in AliveClients) {
                 client.GamePlayer.Reset();
                 GamePlayers.Add(client.GamePlayer);
@@ -167,9 +167,9 @@ namespace Space_Server.game {
             foreach (var opponentShip in opponent.Ships) {
                 opponentShipsInfo +=
                     $"{(int) opponentShip.Hull.Name} " +
-                    $"{(opponentShip.Parts[ShipPartType.Gun] != null ? (int) opponentShip.Parts[ShipPartType.Gun].Name : -1)} " +
-                    $"{(opponentShip.Parts[ShipPartType.Reactor] != null ? (int) opponentShip.Parts[ShipPartType.Reactor].Name : -1)} " +
-                    $"{(opponentShip.Parts[ShipPartType.Facing] != null ? (int) opponentShip.Parts[ShipPartType.Facing].Name : -1)} ";
+                    $"{(opponentShip.Parts[ShipPartType.Gun] != null ? $"{(int) opponentShip.Parts[ShipPartType.Gun].Name} {opponentShip.Parts[ShipPartType.Gun].Rank}" : "-1 -1")} " +
+                    $"{(opponentShip.Parts[ShipPartType.Reactor] != null ? $"{(int) opponentShip.Parts[ShipPartType.Reactor].Name} {opponentShip.Parts[ShipPartType.Reactor].Rank}" : "-1 -1")} " +
+                    $"{(opponentShip.Parts[ShipPartType.Facing] != null ? $"{(int) opponentShip.Parts[ShipPartType.Facing].Name} {opponentShip.Parts[ShipPartType.Facing].Rank}" : "-1 -1")} ";
                 var position = opponent.PlayerArena.Arena.CoordinatesOf(opponentShip);
                 opponentShipsInfo += $"{position.Y} {position.X} ";
             }

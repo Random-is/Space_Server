@@ -45,7 +45,7 @@ namespace Game_Elements {
         }
 
         public void Reset() {
-            Set(100, 4, 0, 1, new List<Ship>(),
+            Set(100, 4, 0, 2, new List<Ship>(),
                 new ShipPart[8], new PlayerArena(), new ShipPart[5], false
             );
         }
@@ -91,13 +91,60 @@ namespace Game_Elements {
             }
         }
 
+        public List<int> IndexesToCreateT2(ShipPart shipPart) {
+            var count = Bag.Count(part => part == shipPart);
+            if (count >= 2) {
+                var indexesRoRemove = new List<int> {Array.IndexOf(Bag, shipPart), Array.LastIndexOf(Bag, shipPart)};
+                return indexesRoRemove;
+            }
+            return null;
+        }
+
         public ShipPart AddShipPartToShipAndSell(Ship ship, int bagIndex) {
             var shipPart = Bag[bagIndex];
-            Bag[bagIndex] = null;
-            var oldShipPart = ship.ChangeComponent(shipPart);
-            if (oldShipPart != null) {
-                ChangeMoney(TierInfo.Get(oldShipPart.TierName).Cost);
+            if (shipPart == ship.Parts[shipPart.Type]) {
+                var indexesToCreateT2 = IndexesToCreateT2(shipPart);
+                if (indexesToCreateT2 != null) {
+                    if (indexesToCreateT2.Count == 2) {
+                        foreach (var i in indexesToCreateT2) {
+                            Bag[i] = null;
+                        }
+                        shipPart = ShipPartInfo.T2Rank[shipPart.Name];
+                        ship.ChangeComponent(shipPart);
+                        return shipPart;
+                    } 
+                } else {
+                    return null;
+                }
+            } else {
+                Bag[bagIndex] = null;
+                var oldShipPart = ship.ChangeComponent(shipPart);
+                if (oldShipPart != null) {
+                    ChangeMoney(TierInfo.Get(oldShipPart.TierName).Cost * (oldShipPart.Rank == 1 ? 1 : 3));
+                }
             }
+            return shipPart;
+        }
+        
+        public int AddBagItem(ShipPart shipPart) {
+            var indexesToCreateT2 = IndexesToCreateT2(shipPart);
+            if (indexesToCreateT2 != null) {
+                if (indexesToCreateT2.Count == 2) {
+                    foreach (var i in indexesToCreateT2) {
+                        Bag[i] = null;
+                    }
+                    shipPart = ShipPartInfo.T2Rank[shipPart.Name];
+                } 
+            }
+            var bagFreeSpaceIndex = Array.IndexOf(Bag, null);
+            Bag[bagFreeSpaceIndex] = shipPart;
+            return bagFreeSpaceIndex;
+        }
+
+        public ShipPart BuyShipPart(int shopItemIndex) {
+            var shipPart = Shop[shopItemIndex];
+            ChangeMoney(-TierInfo.Get(shipPart.TierName).Cost);
+            Shop[shopItemIndex] = null;
             return shipPart;
         }
 
@@ -124,24 +171,10 @@ namespace Game_Elements {
             return false;
         }
 
-        public ShipPart BuyShipPart(int shopItemIndex) {
-            var shipPart = Shop[shopItemIndex];
-            ChangeMoney(-TierInfo.Get(shipPart.TierName).Cost);
-            Shop[shopItemIndex] = null;
-            return shipPart;
-        }
-
-        public int AddBagItem(ShipPart shipPart) {
-            //todo MAKE T2 Guns
-            var bagFreeSpaceIndex = Array.IndexOf(Bag, null);
-            Bag[bagFreeSpaceIndex] = shipPart;
-            return bagFreeSpaceIndex;
-        }
-
         public ShipPart SellBagItem(int bagIndex) {
             var shipPart = Bag[bagIndex];
             Bag[bagIndex] = null;
-            ChangeMoney(TierInfo.Get(shipPart.TierName).Cost);
+            ChangeMoney(TierInfo.Get(shipPart.TierName).Cost * (shipPart.Rank == 1 ? 1 : 3));
             return shipPart;
         }
 
