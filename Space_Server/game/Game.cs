@@ -492,7 +492,7 @@ namespace Space_Server.game {
                 var shipIndex = int.Parse(args[0]);
                 var bagIndex = int.Parse(args[1]);
                 var player = client.GamePlayer;
-                if (player.Bag[bagIndex] != null && shipIndex <= player.Ships.Count) {
+                if (player.Bag[bagIndex] != null) {
                     player.AddShipPartToShipAndSell(player.Ships[shipIndex], bagIndex);
                     SendAddPartToShip(client, shipIndex, bagIndex);
                     SendMoney(client);
@@ -501,7 +501,7 @@ namespace Space_Server.game {
         }
 
         private void RemoveCommandAddShipPart(NetworkClient client) {
-            client.RemoveCommand(CommandType.GAME, "GAME_ADD_SHIP_COMPONENT");
+            client.RemoveCommand(CommandType.GAME, "GAME_ADD_SHIP_PART");
         }
     }
 }
