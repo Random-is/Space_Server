@@ -23,12 +23,22 @@ namespace Game_Elements.ship.ship_part {
         Gun11,
         Gun12,
         Gun13,
+        Gun14,
+        Gun15,
+        Gun16,
+        Gun17,
+        Gun18,
         Facing1,
         Facing2,
         Facing3,
+        Facing4,
+        Facing5,
+        Facing6,
+        Facing7,
         Rector1,
         Rector2,
         Rector3,
+        Rector4,
     }
 
     public class ShipPart {

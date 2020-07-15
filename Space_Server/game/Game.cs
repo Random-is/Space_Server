@@ -35,9 +35,19 @@ namespace Space_Server.game {
         }
 
         public void Start() {
-            for (var i = 1; i <= 5; i++) {
-                PlayRound(i);
+            var round = 1;
+            while (true) {
+                PlayRound(round);
+                if (AliveClients.Count == 0)
+                    break;
+                round++;
             }
+        }
+
+        private void LeaveClient(NetworkClient client) {
+            client.RemoveAllCommands(CommandType.GAME);
+            AliveClients.Remove(client);
+            GamePlayers.Remove(client.GamePlayer);
         }
 
         public void Generate() {
@@ -53,7 +63,6 @@ namespace Space_Server.game {
         }
 
         private void PlayRound(int round) {
-            //TODO Баг с тем что оне удаляется GamePlayer при смерти
             PvpFights = GenerateFights(AliveClients);
             foreach (var gamePlayer in GamePlayers) {
                 gamePlayer.AddXp(1);
@@ -82,7 +91,7 @@ namespace Space_Server.game {
                 SendOpponent(client);
             }
 
-            const int buySeconds = 40;
+            const int buySeconds = 60;
             for (var currentSecond = 0; currentSecond < buySeconds; currentSecond++) {
                 var timeLeft = buySeconds - currentSecond;
                 if (currentSecond % (buySeconds / 3) == 0) {
@@ -91,25 +100,25 @@ namespace Space_Server.game {
                 Thread.Sleep(1000);
             }
 
-            const int positioningSeconds = 10;
-            foreach (var client in AliveClients) {
-                RemoveCommandLvlUp(client);
-                RemoveCommandShopBuy(client);
-                RemoveCommandShopRoll(client);
-                RemoveCommandBuyShip(client);
-                RemoveCommandAddShipPart(client);
-                RemoveCommandShopLock(client);
-                RemoveCommandBagItemReposition(client);
-                RemoveCommandSellBagItem(client);
-                SendPhasePositioning(client);
-            }
-            for (var currentSecond = 0; currentSecond < positioningSeconds; currentSecond++) {
-                var timeLeft = positioningSeconds - currentSecond;
-                if (currentSecond % (positioningSeconds / 3) == 0) {
-                    AliveClients.ForEach(client => SendTime(client, timeLeft));
-                }
-                Thread.Sleep(1000);
-            }
+            // const int positioningSeconds = 10;
+            // foreach (var client in AliveClients) {
+            //     RemoveCommandLvlUp(client);
+            //     RemoveCommandShopBuy(client);
+            //     RemoveCommandShopRoll(client);
+            //     RemoveCommandBuyShip(client);
+            //     RemoveCommandAddShipPart(client);
+            //     RemoveCommandShopLock(client);
+            //     RemoveCommandBagItemReposition(client);
+            //     RemoveCommandSellBagItem(client);
+            //     SendPhasePositioning(client);
+            // }
+            // for (var currentSecond = 0; currentSecond < positioningSeconds; currentSecond++) {
+            //     var timeLeft = positioningSeconds - currentSecond;
+            //     if (currentSecond % (positioningSeconds / 3) == 0) {
+            //         AliveClients.ForEach(client => SendTime(client, timeLeft));
+            //     }
+            //     Thread.Sleep(1000);
+            // }
 
             const int fightDurationSeconds = 20;
             foreach (var client in AliveClients) {
@@ -143,6 +152,22 @@ namespace Space_Server.game {
                     // SendHp(winnerClient);
                 }
             }
+            var diedClients = AliveClients.Where(client => client.GamePlayer.Hp <= 0).ToList();
+            foreach (var networkClient in diedClients) {
+                LeaveClient(networkClient);
+                LastDead = networkClient;
+            }
+            foreach (var networkClient in diedClients) {
+                SendGameEnd(networkClient, GamePlayers.Count + 1);
+            }
+            if (AliveClients.Count == 1) {
+                LeaveClient(AliveClients.First());
+                SendGameEnd(AliveClients.First(), 1);
+            }
+        }
+
+        private void SendGameEnd(NetworkClient client, int place) {
+            SendToClient(client,$"GAME_END:{place}");
         }
 
         private void SendGamePlayersHp(NetworkClient client) {

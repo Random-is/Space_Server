@@ -22,8 +22,10 @@ namespace Game_Elements.fight {
             Random random,
             Action<FightShip, FightArena, int> moveAction = null,
             Action<FightShip, FightArena, int> rotateAction = null,
-            Action<FightShip, FightArena, int> attackAction = null,
-            Action<FightShip, ShipPartSpell, FightArena, int> spellStartCastAction = null,
+            Action<FightShip, FightArena, int> beforeAttackAction = null,
+            Action<FightShip, FightArena, int> afterAttackAction = null,
+            Action<FightShip, ShipPart, FightArena, int> beforeSpellCastAction = null,
+            Action<FightShip, ShipPart, FightArena, int> afterSpellCastAction = null,
             Action<FightArena, int> afterTickAction = null
         ) {
             const int tickRate = 30;
@@ -34,56 +36,60 @@ namespace Game_Elements.fight {
                     var currentShip = fightShips[j];
                     // console.Write($"Ship {(int) currentShip.Ship.Hull.Name} target {(currentShip.Target == null ? "Null" : ((int) currentShip.Target.Ship.Hull.Name).ToString())}: ");
                     if (currentShip.BusyTicksAttack == -1) {
-                        if (currentShip.AfterBusySpells.Count == 0) {
-                            if (currentShip.Target == null || !currentShip.Target.Alive) { //Поиск Цели
-                                // console.WriteLine("Finding Target");
-                                currentShip.BusyTicksSpell = 0;
-                                currentShip.AfterBusySpells.Clear();
-                                var minDistance = float.MaxValue;
-                                FightShip minDistanceTargetShip = null;
-                                foreach (var targetShip in fightShips.Where(ship => ship.Player != currentShip.Player)
-                                ) {
-                                    var distance = currentShip.CalcDistance(targetShip);
-                                    if (distance < minDistance) {
-                                        minDistance = distance;
-                                        minDistanceTargetShip = targetShip;
+                        if (currentShip.BusyTicksSpell == 0) {
+                            if (currentShip.AfterBusySpells.Count == 0) {
+                                if (currentShip.Target == null || !currentShip.Target.Alive) { //Поиск Цели
+                                    // console.WriteLine("Finding Target");
+                                    currentShip.BusyTicksSpell = 0;
+                                    currentShip.AfterBusySpells.Clear();
+                                    var minDistance = float.MaxValue;
+                                    FightShip minDistanceTargetShip = null;
+                                    foreach (var targetShip in fightShips.Where(ship =>
+                                        ship.Player != currentShip.Player)
+                                    ) {
+                                        var distance = currentShip.CalcDistance(targetShip);
+                                        if (distance < minDistance) {
+                                            minDistance = distance;
+                                            minDistanceTargetShip = targetShip;
+                                        }
                                     }
+                                    currentShip.Target = minDistanceTargetShip;
+                                    continue;
                                 }
-                                currentShip.Target = minDistanceTargetShip;
-                                continue;
-                            }
-                            var path = currentShip.FindPath(currentShip.Target.Position);
-                            if (!currentShip.IsLookAt(path[0])) {
-                                // console.WriteLine($"Rotating {currentShip.CalcAngle(currentShip.Target.Position)}");
-                                currentShip.RotateTo(path[0], tickRate);
-                                rotateAction?.Invoke(currentShip, arena, tickRate);
-                                if (currentShip.IsLookAt(path[0])) {
+                                var path = currentShip.FindPath(currentShip.Target.Position);
+                                if (!currentShip.IsLookAt(path[0])) {
+                                    // console.WriteLine($"Rotating {currentShip.CalcAngle(currentShip.Target.Position)}");
+                                    currentShip.RotateTo(path[0], tickRate);
+                                    rotateAction?.Invoke(currentShip, arena, tickRate);
+                                    if (currentShip.IsLookAt(path[0])) {
+                                        // console.WriteLine($"Moving {currentShip.CalcDistance(currentShip.Target)}");
+                                        currentShip.MoveTo(path[0], tickRate);
+                                        moveAction?.Invoke(currentShip, arena, tickRate);
+                                    }
+                                    continue;
+                                }
+                                if (currentShip.CalcDistance(currentShip.Target) > currentShip.AttackRange) {
                                     // console.WriteLine($"Moving {currentShip.CalcDistance(currentShip.Target)}");
                                     currentShip.MoveTo(path[0], tickRate);
                                     moveAction?.Invoke(currentShip, arena, tickRate);
+                                    continue;
                                 }
-                                continue;
                             }
-                            if (currentShip.CalcDistance(currentShip.Target) > currentShip.AttackRange) {
-                                // console.WriteLine($"Moving {currentShip.CalcDistance(currentShip.Target)}");
-                                currentShip.MoveTo(path[0], tickRate);
-                                moveAction?.Invoke(currentShip, arena, tickRate);
-                                continue;
-                            }
-                        } else if (currentShip.BusyTicksSpell == 0) { //Использование способности
+
+
                             // console.WriteLine("Spell Using Complete");
                             var spellList = currentShip.AfterBusySpells;
                             if (spellList.Count > 0) {
-                                spellList[currentShip.ActiveSpellIndex].Spell(fightShips, currentShip, random);
+                                spellList[currentShip.ActiveSpellIndex].Spell.Spell(fightShips, currentShip, random);
+                                afterSpellCastAction?.Invoke(currentShip, spellList[currentShip.ActiveSpellIndex], arena, tickRate);
                                 spellList.RemoveAt(currentShip.ActiveSpellIndex);
                                 if (spellList.Count > 0) {
                                     // console.WriteLine("Spell Using Start");
                                     var randomSpellIndex = random.Next(spellList.Count);
-                                    var randomSpell = spellList[randomSpellIndex];
+                                    var randomSpell = spellList[randomSpellIndex].Spell;
                                     currentShip.BusyTicksSpell = (int) (randomSpell.SpellCastSeconds * tickRate);
                                     currentShip.ActiveSpellIndex = randomSpellIndex;
-                                    spellStartCastAction?.Invoke(currentShip, spellList[randomSpellIndex], arena,
-                                        tickRate);
+                                    beforeSpellCastAction?.Invoke(currentShip, spellList[randomSpellIndex], arena, tickRate);
                                 }
                                 continue;
                             }
@@ -93,16 +99,17 @@ namespace Game_Elements.fight {
                                 foreach (var shipPart in currentShip.Ship.Parts.Values) {
                                     var spell = shipPart?.Spell;
                                     if (spell != null) {
-                                        spellList.Add(spell);
+                                        spellList.Add(shipPart);
                                     }
                                 }
-                                var randomSpellIndex = random.Next(spellList.Count);
-                                var randomSpell = spellList[randomSpellIndex];
-                                currentShip.BusyTicksSpell = (int) (randomSpell.SpellCastSeconds * tickRate);
-                                currentShip.ActiveSpellIndex = randomSpellIndex;
-                                spellStartCastAction?.Invoke(currentShip, spellList[randomSpellIndex], arena,
-                                    tickRate);
-                                continue;
+                                if (spellList.Count > 0) {
+                                    var randomSpellIndex = random.Next(spellList.Count);
+                                    var randomSpell = spellList[randomSpellIndex].Spell;
+                                    currentShip.BusyTicksSpell = (int) (randomSpell.SpellCastSeconds * tickRate);
+                                    currentShip.ActiveSpellIndex = randomSpellIndex;
+                                    beforeSpellCastAction?.Invoke(currentShip, spellList[randomSpellIndex], arena, tickRate);
+                                    continue;
+                                }
                             }
                         } else {
                             currentShip.BusyTicksSpell--;
@@ -110,15 +117,18 @@ namespace Game_Elements.fight {
                         }
                         // console.WriteLine("AA start");
                         currentShip.BusyTicksAttack = (int) (1 / currentShip.AttackSpeed * tickRate); //Начало Автоатаки
+                        beforeAttackAction?.Invoke(currentShip, arena, tickRate);
                     } else if (currentShip.BusyTicksAttack == 0) { //Завершение Автоатаки
                         // console.WriteLine("AA complete");
-                        currentShip.Energy += currentShip.EnergyRegenPerAttack;
+                        if (currentShip.Ship.Parts[ShipPartType.Reactor] != null) {
+                            currentShip.Energy += currentShip.EnergyRegenPerAttack;
+                        }
                         currentShip.Target.TakePhysicalDamage(currentShip.AttackDamage);
                         if (!currentShip.Target.Alive) {
                             fightShips.Remove(currentShip.Target);
                         }
                         currentShip.BusyTicksAttack = -1;
-                        attackAction?.Invoke(currentShip, arena, tickRate);
+                        afterAttackAction?.Invoke(currentShip, arena, tickRate);
                     } else {
                         // console.WriteLine($"AA wating {currentShip.BusyTicksAA}");
                         currentShip.BusyTicksAttack--;
@@ -132,7 +142,7 @@ namespace Game_Elements.fight {
             var looser = winner == arena.MainPlayer ? arena.OpponentPlayer : arena.MainPlayer;
             var tie = mainPlayerShipsCount == opponentShipsCount;
             var damage = mainPlayerShipsCount > opponentShipsCount ? mainPlayerShipsCount : opponentShipsCount;
-            damage *= 4;
+            damage *= 25;
             return new FightResult {
                 Winner = winner,
                 Loser = looser,

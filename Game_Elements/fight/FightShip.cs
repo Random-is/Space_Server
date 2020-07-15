@@ -16,7 +16,7 @@ namespace Game_Elements.fight {
         public bool Alive => Hp > 0;
         public int BusyTicksSpell { get; set; }
         public int BusyTicksAttack { get; set; }
-        public List<ShipPartSpell> AfterBusySpells { get; set; }
+        public List<ShipPart> AfterBusySpells { get; set; }
         public int ActiveSpellIndex { get; set; }
         public FightShip Target { get; set; }
         public float AttackRange { get; set; }
@@ -26,6 +26,7 @@ namespace Game_Elements.fight {
         public int Energy { get; set; }
         public int AttackDamage { get; set; }
         public int MaxEnergy { get; set; }
+        public int MaxHp { get; set; }
         public int EnergyRegenPerAttack { get; set; }
         public int Hp { get; set; }
         
@@ -49,17 +50,20 @@ namespace Game_Elements.fight {
             BusyTicksSpell = 0;
             Energy = 0;
             Target = null;
-            AfterBusySpells = new List<ShipPartSpell>();
+            AfterBusySpells = new List<ShipPart>();
             BusyTicksAttack = -1;
             Position = position;
             Arena = arena;
             RotateAngle = position.Y < FightArena.Height / 2f ? 180 : 0;
             RotateSpeed = 80;
             MoveSpeed = 10;
-            AttackRange = 20;
+            AttackRange = 40;
             Hp = 15;
+            MaxHp = 15;
             AttackSpeed = 3;
             AttackDamage = 1;
+            EnergyRegenPerAttack = 1;
+            MaxEnergy = 10;
             //calc All params
             //calc HP
             //calc MaxEnergy
