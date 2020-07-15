@@ -161,8 +161,9 @@ namespace Space_Server.game {
                 SendGameEnd(networkClient, GamePlayers.Count + 1);
             }
             if (AliveClients.Count == 1) {
-                LeaveClient(AliveClients.First());
-                SendGameEnd(AliveClients.First(), 1);
+                var lastClient = AliveClients.First();
+                LeaveClient(lastClient);
+                SendGameEnd(lastClient, 1);
             }
         }
 
