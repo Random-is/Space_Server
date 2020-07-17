@@ -44,7 +44,7 @@ namespace Game_Elements.ship.ship_part {
                 },
                 new ShipPartSpell(
                     (fightShips, ship, random) => {
-                        
+                        ship.Target.Hp -= 5;
                     },
                     2), new Dictionary<ShipParameterName, float> {
                     [ShipParameterName.Health] = 300,
@@ -62,7 +62,7 @@ namespace Game_Elements.ship.ship_part {
                     [ShipClassName.Fighter] = 2
                 },
                 new ShipPartSpell(
-                    (fightShips, ship, random) => { },
+                    (fightShips, ship, random) => { ship.Target.Hp -= 5; },
                     1), new Dictionary<ShipParameterName, float> {
                     [ShipParameterName.Health] = 900,
                     [ShipParameterName.AttackDamage] = 100,
@@ -80,7 +80,7 @@ namespace Game_Elements.ship.ship_part {
                     [ShipClassName.Armored] = 2
                 },
                 new ShipPartSpell(
-                    (fightShips, ship, random) => { },
+                    (fightShips, ship, random) => { ship.Target.Hp -= 5; },
                     1), new Dictionary<ShipParameterName, float> {
                     [ShipParameterName.Health] = 300,
                     [ShipParameterName.AttackDamage] = 40,
@@ -97,7 +97,7 @@ namespace Game_Elements.ship.ship_part {
                     [ShipClassName.Armored] = 2,
                     [ShipClassName.Bomber] = 4,
                 },
-                new ShipPartSpell((list, ship, arg3) => { }, 1), new Dictionary<ShipParameterName, float> {
+                new ShipPartSpell((fightShips, ship, random) => { ship.Target.Hp -= 5; }, 1), new Dictionary<ShipParameterName, float> {
                     [ShipParameterName.AttackDamage] = 40,
                     [ShipParameterName.Health] = 150,
                     [ShipParameterName.MagicDamage] = 120,
@@ -111,7 +111,7 @@ namespace Game_Elements.ship.ship_part {
                     [ShipClassName.Armored] = 3,
                     [ShipClassName.Bomber] = 3,
                 },
-                new ShipPartSpell((list, ship, arg3) => { }, 1), new Dictionary<ShipParameterName, float> {
+                new ShipPartSpell((fightShips, ship, random) => { ship.Target.Hp -= 5; }, 1), new Dictionary<ShipParameterName, float> {
                     [ShipParameterName.AttackDamage] = 40,
                     [ShipParameterName.Health] = 150,
                     [ShipParameterName.MagicDamage] = 120,
@@ -125,7 +125,7 @@ namespace Game_Elements.ship.ship_part {
                     [ShipClassName.Technodroid] = 1,
                     [ShipClassName.Saboteur] = 4,
                 },
-                new ShipPartSpell((list, ship, arg3) => { }, 1), new Dictionary<ShipParameterName, float> {
+                new ShipPartSpell((fightShips, ship, random) => { ship.Target.Hp -= 5; }, 1), new Dictionary<ShipParameterName, float> {
                     [ShipParameterName.AttackDamage] = 40,
                     [ShipParameterName.Health] = 150,
                     [ShipParameterName.MagicDamage] = 120,
@@ -139,7 +139,7 @@ namespace Game_Elements.ship.ship_part {
                     [ShipClassName.Armored] = 3,
                     [ShipClassName.Saboteur] = 5,
                 },
-                new ShipPartSpell((list, ship, arg3) => { }, 1), new Dictionary<ShipParameterName, float> {
+                new ShipPartSpell((fightShips, ship, random) => { ship.Target.Hp -= 5; }, 1), new Dictionary<ShipParameterName, float> {
                     [ShipParameterName.AttackDamage] = 40,
                     [ShipParameterName.Health] = 150,
                     [ShipParameterName.MagicDamage] = 120,
@@ -153,7 +153,7 @@ namespace Game_Elements.ship.ship_part {
                     [ShipClassName.Fighter] = 6,
                     [ShipClassName.Saboteur] = 6,
                 },
-                new ShipPartSpell((list, ship, arg3) => { }, 1), new Dictionary<ShipParameterName, float> {
+                new ShipPartSpell((fightShips, ship, random) => { ship.Target.Hp -= 5; }, 1), new Dictionary<ShipParameterName, float> {
                     [ShipParameterName.AttackDamage] = 40,
                     [ShipParameterName.Health] = 150,
                     [ShipParameterName.MagicDamage] = 120,
@@ -167,7 +167,7 @@ namespace Game_Elements.ship.ship_part {
                     [ShipClassName.Bomber] = 1,
                     [ShipClassName.Armored] = 2,
                 },
-                new ShipPartSpell((list, ship, arg3) => { }, 1), new Dictionary<ShipParameterName, float> {
+                new ShipPartSpell((fightShips, ship, random) => { ship.Target.Hp -= 5; }, 1), new Dictionary<ShipParameterName, float> {
                     [ShipParameterName.AttackDamage] = 40,
                     [ShipParameterName.Health] = 150,
                     [ShipParameterName.MagicDamage] = 120,
@@ -182,7 +182,7 @@ namespace Game_Elements.ship.ship_part {
                     [ShipClassName.Armored] = 4,
                     [ShipClassName.Technodroid] = 4,
                 },
-                new ShipPartSpell((list, ship, arg3) => { }, 1), new Dictionary<ShipParameterName, float> {
+                new ShipPartSpell((fightShips, ship, random) => { ship.Target.Hp -= 5; }, 1), new Dictionary<ShipParameterName, float> {
                     [ShipParameterName.AttackDamage] = 40,
                     [ShipParameterName.Health] = 150,
                     [ShipParameterName.MagicDamage] = 120,
@@ -197,7 +197,7 @@ namespace Game_Elements.ship.ship_part {
                     [ShipClassName.Armored] = 2,
                     [ShipClassName.Fighter] = 2,
                 },
-                new ShipPartSpell((list, ship, arg3) => { }, 1), new Dictionary<ShipParameterName, float> {
+                new ShipPartSpell((fightShips, ship, random) => { ship.Target.Hp -= 5; }, 1), new Dictionary<ShipParameterName, float> {
                     [ShipParameterName.AttackDamage] = 40,
                     [ShipParameterName.Health] = 150,
                     [ShipParameterName.MagicDamage] = 120,
@@ -212,7 +212,7 @@ namespace Game_Elements.ship.ship_part {
                     [ShipClassName.Bomber] = 3,
                     [ShipClassName.Saboteur] = 3,
                 },
-                new ShipPartSpell((list, ship, arg3) => { }, 1), new Dictionary<ShipParameterName, float> {
+                new ShipPartSpell((fightShips, ship, random) => { ship.Target.Hp -= 5; }, 1), new Dictionary<ShipParameterName, float> {
                     [ShipParameterName.AttackDamage] = 40,
                     [ShipParameterName.Health] = 150,
                     [ShipParameterName.MagicDamage] = 120,
@@ -227,7 +227,7 @@ namespace Game_Elements.ship.ship_part {
                     [ShipClassName.Technodroid] = 5,
                     [ShipClassName.Saboteur] = 3,
                 },
-                new ShipPartSpell((list, ship, arg3) => { }, 1), new Dictionary<ShipParameterName, float> {
+                new ShipPartSpell((fightShips, ship, random) => { ship.Target.Hp -= 5; }, 1), new Dictionary<ShipParameterName, float> {
                     [ShipParameterName.AttackDamage] = 40,
                     [ShipParameterName.Health] = 150,
                     [ShipParameterName.MagicDamage] = 120,
@@ -242,7 +242,7 @@ namespace Game_Elements.ship.ship_part {
                     [ShipClassName.Technodroid] = 5,
                     [ShipClassName.Saboteur] = 3,
                 },
-                new ShipPartSpell((list, ship, arg3) => { }, 1), new Dictionary<ShipParameterName, float> {
+                new ShipPartSpell((fightShips, ship, random) => { ship.Target.Hp -= 5; }, 1), new Dictionary<ShipParameterName, float> {
                     [ShipParameterName.AttackDamage] = 40,
                     [ShipParameterName.Health] = 150,
                     [ShipParameterName.MagicDamage] = 120,
@@ -257,7 +257,7 @@ namespace Game_Elements.ship.ship_part {
                     [ShipClassName.Technodroid] = 5,
                     [ShipClassName.Saboteur] = 3,
                 },
-                new ShipPartSpell((list, ship, arg3) => { }, 1), new Dictionary<ShipParameterName, float> {
+                new ShipPartSpell((fightShips, ship, random) => { ship.Target.Hp -= 5; }, 1), new Dictionary<ShipParameterName, float> {
                     [ShipParameterName.AttackDamage] = 40,
                     [ShipParameterName.Health] = 150,
                     [ShipParameterName.MagicDamage] = 120,
@@ -272,7 +272,7 @@ namespace Game_Elements.ship.ship_part {
                     [ShipClassName.Technodroid] = 5,
                     [ShipClassName.Saboteur] = 3,
                 },
-                new ShipPartSpell((list, ship, arg3) => { }, 1), new Dictionary<ShipParameterName, float> {
+                new ShipPartSpell((fightShips, ship, random) => { ship.Target.Hp -= 5; }, 1), new Dictionary<ShipParameterName, float> {
                     [ShipParameterName.AttackDamage] = 40,
                     [ShipParameterName.Health] = 150,
                     [ShipParameterName.MagicDamage] = 120,
@@ -287,7 +287,7 @@ namespace Game_Elements.ship.ship_part {
                     [ShipClassName.Technodroid] = 5,
                     [ShipClassName.Saboteur] = 3,
                 },
-                new ShipPartSpell((list, ship, arg3) => { }, 1), new Dictionary<ShipParameterName, float> {
+                new ShipPartSpell((fightShips, ship, random) => { ship.Target.Hp -= 5; }, 1), new Dictionary<ShipParameterName, float> {
                     [ShipParameterName.AttackDamage] = 40,
                     [ShipParameterName.Health] = 150,
                     [ShipParameterName.MagicDamage] = 120,
@@ -302,7 +302,7 @@ namespace Game_Elements.ship.ship_part {
                     [ShipClassName.Technodroid] = 5,
                     [ShipClassName.Saboteur] = 3,
                 },
-                new ShipPartSpell((list, ship, arg3) => { }, 1), new Dictionary<ShipParameterName, float> {
+                new ShipPartSpell((fightShips, ship, random) => { ship.Target.Hp -= 5; }, 1), new Dictionary<ShipParameterName, float> {
                     [ShipParameterName.AttackDamage] = 40,
                     [ShipParameterName.Health] = 150,
                     [ShipParameterName.MagicDamage] = 120,
@@ -316,7 +316,7 @@ namespace Game_Elements.ship.ship_part {
                     [ShipClassName.Technodroid] = 4
                 },
                 new ShipPartSpell(
-                    (fightShips, ship, random) => { },
+                    (fightShips, ship, random) => { ship.Target.Hp -= 5; },
                     1), new Dictionary<ShipParameterName, float> {
                     [ShipParameterName.MagicDamage] = 120,
                     [ShipParameterName.AttackRange] = 1,
@@ -329,7 +329,7 @@ namespace Game_Elements.ship.ship_part {
                     [ShipClassName.Bomber] = 2
                 },
                 new ShipPartSpell(
-                    (fightShips, ship, random) => { },
+                    (fightShips, ship, random) => { ship.Target.Hp -= 5; },
                     1), new Dictionary<ShipParameterName, float> {
                     [ShipParameterName.AttackDamage] = 40,
                     [ShipParameterName.MagicDamage] = 120,
@@ -343,7 +343,7 @@ namespace Game_Elements.ship.ship_part {
                     [ShipClassName.Fighter] = 8
                 },
                 new ShipPartSpell(
-                    (fightShips, ship, random) => { },
+                    (fightShips, ship, random) => { ship.Target.Hp -= 5; },
                     1), new Dictionary<ShipParameterName, float> {
                     [ShipParameterName.Health] = 420,
                     [ShipParameterName.AttackDamage] = 46,
@@ -356,7 +356,7 @@ namespace Game_Elements.ship.ship_part {
                     [ShipClassName.Fighter] = 8
                 },
                 new ShipPartSpell(
-                    (fightShips, ship, random) => { },
+                    (fightShips, ship, random) => { ship.Target.Hp -= 5; },
                     1), new Dictionary<ShipParameterName, float> {
                     [ShipParameterName.Health] = 420,
                     [ShipParameterName.AttackDamage] = 46,
@@ -370,7 +370,7 @@ namespace Game_Elements.ship.ship_part {
                     [ShipClassName.Saboteur] = 2
                 },
                 new ShipPartSpell(
-                    (fightShips, ship, random) => { },
+                    (fightShips, ship, random) => { ship.Target.Hp -= 5; },
                     1), new Dictionary<ShipParameterName, float> {
                     [ShipParameterName.Health] = 400,
                     [ShipParameterName.Armor] = 20,
@@ -384,7 +384,7 @@ namespace Game_Elements.ship.ship_part {
                     [ShipClassName.Technodroid] = 2
                 },
                 new ShipPartSpell(
-                    (fightShips, ship, random) => { },
+                    (fightShips, ship, random) => { ship.Target.Hp -= 5; },
                     1), new Dictionary<ShipParameterName, float> {
                     [ShipParameterName.Health] = 500,
                     [ShipParameterName.Armor] = 50,
@@ -397,7 +397,7 @@ namespace Game_Elements.ship.ship_part {
                     [ShipClassName.Bomber] = 4
                 },
                 new ShipPartSpell(
-                    (fightShips, ship, random) => { },
+                    (fightShips, ship, random) => { ship.Target.Hp -= 5; },
                     1), new Dictionary<ShipParameterName, float> {
                     [ShipParameterName.Health] = 300,
                     [ShipParameterName.Armor] = 32,
@@ -410,7 +410,7 @@ namespace Game_Elements.ship.ship_part {
                     [ShipClassName.Bomber] = 4
                 },
                 new ShipPartSpell(
-                    (fightShips, ship, random) => { },
+                    (fightShips, ship, random) => { ship.Target.Hp -= 5; },
                     1), new Dictionary<ShipParameterName, float> {
                     [ShipParameterName.Health] = 300,
                     [ShipParameterName.Armor] = 32,
@@ -423,7 +423,7 @@ namespace Game_Elements.ship.ship_part {
                     [ShipClassName.Bomber] = 4
                 },
                 new ShipPartSpell(
-                    (fightShips, ship, random) => { },
+                    (fightShips, ship, random) => { ship.Target.Hp -= 5; },
                     1), new Dictionary<ShipParameterName, float> {
                     [ShipParameterName.Health] = 300,
                     [ShipParameterName.Armor] = 32,
@@ -436,7 +436,7 @@ namespace Game_Elements.ship.ship_part {
                     [ShipClassName.Bomber] = 4
                 },
                 new ShipPartSpell(
-                    (fightShips, ship, random) => { },
+                    (fightShips, ship, random) => { ship.Target.Hp -= 5; },
                     1), new Dictionary<ShipParameterName, float> {
                     [ShipParameterName.Health] = 300,
                     [ShipParameterName.Armor] = 32,
@@ -449,7 +449,7 @@ namespace Game_Elements.ship.ship_part {
                     [ShipClassName.Bomber] = 4
                 },
                 new ShipPartSpell(
-                    (fightShips, ship, random) => { },
+                    (fightShips, ship, random) => { ship.Target.Hp -= 5; },
                     1), new Dictionary<ShipParameterName, float> {
                     [ShipParameterName.Health] = 300,
                     [ShipParameterName.Armor] = 32,

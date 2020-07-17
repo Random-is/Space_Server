@@ -58,7 +58,7 @@ namespace Space_Server.server {
                     var login = auth[0];
                     var password = auth[1];
                     //todo Get Nickname from BD by [login, password]
-                    gamePlayer.Nickname = nickname;
+                    gamePlayer.Nickname = login;
                     // networkClient.TcpReader.BaseStream.ReadTimeout = -1;
                     Clients.TryAdd(networkClient);
                     AddCommandHandler(networkClient);
